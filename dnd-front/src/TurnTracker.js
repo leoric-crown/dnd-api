@@ -5,9 +5,9 @@ import 'react-table/react-table.css'
 class TurnTracker extends Component {
   state = {
     characterList: [],
-    currentActorName: '',
+    currentActorName: null,
     characterOptions: null,
-    selectedCharacter: ''
+    selectedCharacter: null,
   }
   nextTurn = (event) => {
     const { characterList, currentActorName } = this.state
@@ -18,7 +18,7 @@ class TurnTracker extends Component {
     })
   }
   handleSelectCharacter = (event) => {
-    console.log(event.target)
+    console.log(event.target.value)
     this.setState({selectedCharacter: event.target.value})
   }
   removeCharacter = (event) => {
@@ -32,52 +32,63 @@ class TurnTracker extends Component {
     })
       .then(res => res.json())
       .then(data => {
-        var characterOptions = []
-        var characterList = data
-        for(var k = 0; k < characterList.length ; k++) {
-          console.log(k)
-          characterOptions.push(<option key={k} value={characterList[k].name}>{characterList[k].name}</option>)
-        }
-        console.log(characterOptions)
-        this.setState({ characterList: characterList, characterOptions: characterOptions, selectedCharacter: characterList.length === 0 ? '' : characterList[0].name})
+        this.updateState(data)
       })
       .catch(e => console.log(e))
+  }
+  updateState = (data) => {
+    var characterOptions = []
+    var newCharacterList = data
+    const { currentActorName, characterList } = this.state
+    const currentActor = {
+      name: currentActorName,
+      index: characterList.map(a => a.name).indexOf(currentActorName)
+    }
+    var newActorName = currentActorName
+    if(newCharacterList.length > 0 && newCharacterList.map(a => a.name).indexOf(currentActorName) === -1) {
+      if(currentActor.index === characterList.length - 1) {
+        newActorName = newCharacterList[0].name
+      }
+      else {
+        newActorName = newCharacterList[currentActor.index].name
+      }
+    }
+    for(var k = 0; k < newCharacterList.length ; k++) {
+      characterOptions.push(<option key={k} value={newCharacterList[k].name}>{newCharacterList[k].name}</option>)
+    }
+    console.log('newcharacterlist', newCharacterList)
+    this.setState({
+      characterList: newCharacterList,
+      characterOptions: characterOptions,
+      currentActorName: newCharacterList.length > 0 ? newActorName : null,
+      selectedCharacter: newCharacterList.length > 0 ? newCharacterList[0].name : null
+    })
   }
   componentDidMount() {
     fetch('http://localhost:5000/characters')
       .then(res => res.json())
       .then(data => {
-        var characterOptions = []
-        var characterList = data
-        for(var k = 0; k < characterList.length ; k++) {
-          console.log(k)
-          characterOptions.push(<option key={k} value={characterList[k].name}>{characterList[k].name}</option>)
-        }
-        console.log(characterOptions)
-        this.setState({ characterList: characterList, characterOptions: characterOptions, selectedCharacter: characterList.length === 0 ? '' : characterList[0].name})
+        this.updateState(data)
       })
       .catch(e => console.log(e))
   }
   componentDidUpdate(prevProps) {
     if(this.props.characters !== prevProps.characters) {
+      /*console.log(this.props.characters)
+      console.log(prevProps.characters)
       fetch('http://localhost:5000/characters')
         .then(res => res.json())
         .then(data => {
-          var characterOptions = []
-          var characterList = data
-          for(var k = 0; k < characterList.length ; k++) {
-            console.log(k)
-            characterOptions.push(<option key={k} value={characterList[k].name}>{characterList[k].name}</option>)
-          }
-          console.log(characterOptions)
-          this.setState({ characterList: characterList, characterOptions: characterOptions, selectedCharacter: characterList.length === 0 ? '' : characterList[0].name})
+          this.updateState(data)
         })
         .catch(e => console.log(e))
+        */
+        this.updateState(this.props.characters)
     }
   }
   render() {
     console.log(this.state)
-    const {characterList, currentActorName} = this.state
+    const {characterList, currentActorName, selectedCharacter} = this.state
     const columns = [
       {
         Header: 'Name',
@@ -158,7 +169,7 @@ class TurnTracker extends Component {
     ]
     return (
       <div>
-      <select id='characterSelect' onChange={this.handleSelectCharacter}>
+      <select value={selectedCharacter} id='characterSelect' onChange={this.handleSelectCharacter}>
         {this.state.characterOptions}
       </select>
       <button type = "submit" onClick = {this.removeCharacter}>
@@ -174,7 +185,7 @@ class TurnTracker extends Component {
             style: {}
           }
           if(rowInfo && rowInfo.row && rowInfo.row.name) {
-            props.style.background = rowInfo.row.name === 'Rhuuan' ? 'green' : null
+            props.style.backgroundColor = (rowInfo.row.name === {currentActorName} ? 'green' : null)
           }
           return props
         }}

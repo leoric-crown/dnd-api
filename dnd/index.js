@@ -12,6 +12,7 @@ app.use((req, res, next) => {
   next();
 })
 app.use(bodyParser.json())
+
 app.get('/', (req, res) => {
   res.json({name: 'PlayerName'})
 })
@@ -27,19 +28,22 @@ app.post('/post', (req, res) => {
 
   res.json(characters)
 })
+
 app.get('/characters', (req, res) => {
   res.json(characters)
 })
 
 app.post('/remove', (req, res) => {
-  console.log(req.body)
+  console.log('Removing: "' + req.body.name + '"')
   console.log("indexOf: " + characters.map(a => a.name).indexOf(req.body.name))
-  characters.splice(
-    characters.map(a => a.name).indexOf(req.body.name),
-    1
-  )
-  console.log(characters)
+  if(characters.map(a => a.name).indexOf(req.body.name) > -1) {
+    characters.splice(
+      characters.map(a => a.name).indexOf(req.body.name),
+      1
+    )
+  }
 
+  console.log(characters)
   res.json(characters)
 })
 
