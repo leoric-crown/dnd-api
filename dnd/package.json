@@ -4,15 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon app.js"
   },
   "author": "richi",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^3.0.2",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-es6-template-engine": "^2.1.5",
+    "jsonwebtoken": "^8.4.0",
     "mongoose": "^5.3.13",
     "morgan": "^1.9.1",
     "nodemon": "^1.18.6"

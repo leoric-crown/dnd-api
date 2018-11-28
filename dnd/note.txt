@@ -1,6 +1,0 @@
-1.	DM creates Encounter.
-2.	Add Players/NPCs to Encounter:
-  a.	NPCs can be added from NPC table.
-  b.	Players added from Player UI or from DM UI.
-3.	Initiative values are rolled and inserted to ‘InitiativeRolls’ table, can provide an automatic RNG roll in Player UI.
-4.	Once all initiative values are populated, DM commences Encounter.

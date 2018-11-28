@@ -3,7 +3,6 @@ const app = express()
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
-const PORT = 5000
 
 const characters = []
 
@@ -56,4 +55,4 @@ app.post('/remove', (req, res) => {
   res.json(characters)
 })
 
-app.listen(PORT);
+app.listen(process.env.PORT);
