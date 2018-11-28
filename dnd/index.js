@@ -2,20 +2,28 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const bodyParser = require('body-parser')
-const PORT = 5000
+const morgan = require('morgan')
 
 const characters = []
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-})
 app.use(bodyParser.json())
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*")
+  res.header("Access-Control-Allow-Headers",
+  "Origin, X-Requested-With, Content-Type, Accept", "Authorization")
+  if(req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE')
+    return res.status(200).json({})
+  }
+  next()
+})
+
 
 app.get('/', (req, res) => {
   res.json({name: 'PlayerName'})
 })
+
 app.post('/post', (req, res) => {
   console.log(req.body)
   if(characters.map(a => a.name).indexOf(req.body.name) === -1){
@@ -47,4 +55,4 @@ app.post('/remove', (req, res) => {
   res.json(characters)
 })
 
-app.listen(PORT);
+app.listen(process.env.PORT);
