@@ -1,0 +1,8 @@
+{
+  "env": {
+    "HOST": "localhost",
+    "PORT": 5000,
+    "DBPATH": "mongodb://localhost:27017/dndb",
+    "JWT_KEY": "fuckendungeonsanddragons"
+  }
+}
