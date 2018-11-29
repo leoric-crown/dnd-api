@@ -1,6 +1,9 @@
 const express = require('express')
 const app = express()
+<<<<<<< HEAD
 const server = require('http').createServer(app)
+=======
+>>>>>>> 4380df16195b5b602e3b92999cd1346f03746724
 const morgan = require('morgan')
 const bodyParser = require ('body-parser')
 const mongoose = require ('mongoose')
@@ -8,12 +11,26 @@ const mongoose = require ('mongoose')
 const encounterRoutes = require('./api/routes/encounters')
 const characterRoutes = require('./api/routes/characters')
 const initiativeRoutes = require('./api/routes/initiatives')
+<<<<<<< HEAD
 const userRoutes = require('./api/routes/users')
+=======
+
+mongoose.connect(
+  'mongodb://localhost:27017/dndb',
+  {
+    useNewUrlParser: true
+  }
+)
+
+app.use(morgan("dev"))
+app.use(bodyParser.json())
+>>>>>>> 4380df16195b5b602e3b92999cd1346f03746724
 
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+<<<<<<< HEAD
 app.use('/encounters', encounterRoutes)
 app.use('/characters', characterRoutes)
 app.use('/initiatives', initiativeRoutes)
@@ -42,6 +59,8 @@ app.on('ready', () => {
   })
 })
 /*
+=======
+>>>>>>> 4380df16195b5b602e3b92999cd1346f03746724
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -54,7 +73,15 @@ app.use((req, res, next) => {
   }
   next();
 });
+<<<<<<< HEAD
 */
+=======
+
+app.use('/encounters', encounterRoutes)
+app.use('/characters', characterRoutes)
+app.use('/initiatives', initiativeRoutes)
+
+>>>>>>> 4380df16195b5b602e3b92999cd1346f03746724
 app.use((req, res, next) => {
   const error = new Error('Resource not found')
   error.status = 404

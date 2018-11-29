@@ -3,6 +3,10 @@ const app = express()
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
+<<<<<<< HEAD
+=======
+const PORT = 5000
+>>>>>>> 4380df16195b5b602e3b92999cd1346f03746724
 
 const characters = []
 
