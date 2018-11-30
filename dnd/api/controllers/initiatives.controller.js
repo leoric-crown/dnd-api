@@ -1,8 +1,11 @@
+const config = require('../../config/main')
 const mongoose = require('mongoose')
 const Initiative = require('../models/initiative.model')
-const endpoint = `http://${process.env.HOST}:${process.env.PORT}/initiatives/`
-const encounterEndpoint = `http://${process.env.HOST}:${process.env.PORT}/encounters/`
-const characterEndpoint = `http://${process.env.HOST}:${process.env.PORT}/characters/`
+const endpoint = `http://${config.host}:${config.port}/initiatives/`
+const encounterEndpoint = `http://${config.host}:${config.port}/encounters/`
+const characterEndpoint = `http://${config.host}:${config.port}/characters/`
+
+
 
 const returnError = (err, res) => {
   console.log(err)

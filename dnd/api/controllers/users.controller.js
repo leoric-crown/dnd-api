@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const config = require('../../config/main')
 
 const User = require("../models/user.model");
 
@@ -36,7 +37,6 @@ exports.user_signup = async (req, res, next) => {
       })
 
       const result = await user.save()
-      console.log(result);
       res.status(201).json({
         message: "User created"
       });
@@ -60,7 +60,7 @@ exports.user_login = async (req, res, next) => {
             email: user.email,
             userId: user._id
           },
-          process.env.JWT_KEY,
+          config.jwt_key,
           {
             expiresIn: '4h'
           }

@@ -1,4 +1,5 @@
-const endpoint = `http://${process.env.HOST}:${process.env.PORT}/encounters/`
+const config = require('../../config/main')
+const endpoint = `http://${config.host}:${config.port}/encounters/`
 const mongoose = require('mongoose')
 const Encounter = require('../models/encounter.model')
 

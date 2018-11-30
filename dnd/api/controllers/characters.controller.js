@@ -1,6 +1,8 @@
-const endpoint = `http://${process.env.HOST}:${process.env.PORT}/characters/`
+const config = require('../../config/main')
+const endpoint = `http://${config.host}:${config.port}/characters/`
 const mongoose = require('mongoose')
 const Character = require('../models/character.model')
+
 
 const returnError = (err, res) => {
   console.log(err)
@@ -55,7 +57,6 @@ exports.characters_get_all = async (req, res, next) => {
         return {...doc._doc, ...add}
       })
     }
-
     if(docs) {
       console.log(response)
       res.status(200).json(response)

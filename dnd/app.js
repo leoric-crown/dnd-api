@@ -1,3 +1,4 @@
+const config = require('./config/main')
 const express = require('express')
 const app = express()
 const server = require('http').createServer(app)
@@ -11,14 +12,20 @@ const characterRoutes = require('./api/routes/characters')
 const initiativeRoutes = require('./api/routes/initiatives')
 const userRoutes = require('./api/routes/users')
 
+
+
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.use('/users', userRoutes)
 app.use('/encounters', encounterRoutes)
 app.use('/characters', characterRoutes)
 app.use('/initiatives', initiativeRoutes)
-app.use('/users', userRoutes)
+
+
+
+
 
 mongoose.connection
 .once('open', () => {
@@ -29,16 +36,16 @@ mongoose.connection
   console.error(chalk.bold.red('Error connecting to MongoDB: ' + err))
   server.close()
 })
-console.log(chalk.yellow('Connecting to MongoDB at: '+process.env.DBPATH))
+console.log(chalk.yellow('Connecting to MongoDB at: '+config.dbpath))
 mongoose.connect(
-  process.env.DBPATH,
+  config.dbpath,
   { useNewUrlParser: true, useCreateIndex: true }
 )
 
 app.on('ready', () => {
   console.log(chalk.cyan('Express App is ready.'))
-  server.listen(process.env.PORT || 5000, () => {
-    console.log(chalk.bold.magenta(`Server listening on: http://${process.env.HOST}:${process.env.PORT}...`))
+  server.listen(config.port || 5000, () => {
+    console.log(chalk.bold.magenta(`Server listening on: http://${config.host}:${config.port}...`))
   })
 })
 /*
