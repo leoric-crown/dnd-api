@@ -12,8 +12,6 @@ const characterRoutes = require('./api/routes/characters')
 const initiativeRoutes = require('./api/routes/initiatives')
 const userRoutes = require('./api/routes/users')
 
-
-
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -23,14 +21,16 @@ app.use('/encounters', encounterRoutes)
 app.use('/characters', characterRoutes)
 app.use('/initiatives', initiativeRoutes)
 
-
-
-
-
 mongoose.connection
 .once('open', () => {
   console.log(chalk.bold.green('Successfully connected to MongoDB!'))
   app.emit('ready')
+})
+.on('disconnect', () => {
+  console.log('disconnected')
+})
+.on('reconnect', () => {
+  console.log('reconnected')
 })
 .on('error', err => {
   console.error(chalk.bold.red('Error connecting to MongoDB: ' + err))

@@ -10,7 +10,7 @@ const returnError = (err, res) => {
   })
 }
 
-exports.encounters_create = async(req, res, next) => {
+const encountersCreate = async(req, res, next) => {
   try{
     const encounter = new Encounter ({
       _id: new mongoose.Types.ObjectId(),
@@ -35,7 +35,7 @@ exports.encounters_create = async(req, res, next) => {
   }
 }
 
-exports.encounters_get_all = async (req, res, next) => {
+const encountersGetAll = async (req, res, next) => {
   try {
     const docs = await Encounter.find().select('-__v').exec()
     const response = {
@@ -48,7 +48,10 @@ exports.encounters_get_all = async (req, res, next) => {
             url: endpoint + doc._id
           }
         }
-        return {...doc._doc, ...add}
+        return {
+          ...doc._doc,
+          ...add
+        }
       })
     }
     if(docs) {
@@ -66,7 +69,7 @@ exports.encounters_get_all = async (req, res, next) => {
   }
 }
 
-exports.encounters_get = async (req, res, next) => {
+const encountersGet = async (req, res, next) => {
   const id = req.params.encounterId
   try{
     const doc = await Encounter.findById(id).select('-__v').exec()
@@ -84,7 +87,7 @@ exports.encounters_get = async (req, res, next) => {
   }
 }
 
-exports.encounters_patch = async (req, res, next) => {
+const encountersPatch = async (req, res, next) => {
   try {
     const id = req.params.encounterId
     const updateOps = {}
@@ -114,7 +117,7 @@ exports.encounters_patch = async (req, res, next) => {
   }
 }
 
-exports.encounters_delete = async (req, res, next) => {
+const encountersDelete = async (req, res, next) => {
   try {
     const id = req.params.encounterId
     const result = await Encounter.deleteOne({ _id: id }).exec()
@@ -125,7 +128,7 @@ exports.encounters_delete = async (req, res, next) => {
   }
 }
 
-exports.encounters_delete_all = async (req, res, next) => {
+const encountersDeleteAll = async (req, res, next) => {
   try{
     const result = await Encounter.remove().exec()
     res.status(200).json(result)
@@ -133,4 +136,13 @@ exports.encounters_delete_all = async (req, res, next) => {
   catch (err) {
     returnError(err, res)
   }
+}
+
+module.exports = {
+  encountersCreate,
+  encountersGetAll,
+  encountersGet,
+  encountersPatch,
+  encountersDelete,
+  encountersDeleteAll
 }

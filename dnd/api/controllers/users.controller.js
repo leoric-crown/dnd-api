@@ -21,7 +21,7 @@ const returnAuthError = res => {
 }
 
 
-exports.user_signup = async (req, res, next) => {
+const userSignup = async (req, res, next) => {
   try {
     const user = await User.find({ email: req.body.email }).exec()
     if(user.length >= 1) {
@@ -47,7 +47,7 @@ exports.user_signup = async (req, res, next) => {
   }
 }
 
-exports.user_login = async (req, res, next) => {
+const userLogin = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email }).exec()
     if (user.length < 1) {
@@ -80,7 +80,7 @@ exports.user_login = async (req, res, next) => {
   }
 }
 
-exports.user_delete = async (req, res, next) => {
+const userDelete = async (req, res, next) => {
   try {
     const result = await User.remove({ _id: req.params.userId })
     res.status(200).json({
@@ -92,7 +92,7 @@ exports.user_delete = async (req, res, next) => {
   }
 }
 
-exports.user_delete_all = async (req, res, next) => {
+const userDeleteAll = async (req, res, next) => {
   try {
     const result = await User.remove()
     res.status(200).json({
@@ -102,4 +102,11 @@ exports.user_delete_all = async (req, res, next) => {
   catch (err) {
     returnError(err, res)
   }
+}
+
+module.exports = {
+  userSignup,
+  userLogin,
+  userDelete,
+  userDeleteAll
 }

@@ -3,12 +3,12 @@ const router = express.Router()
 
 const UserController = require('../controllers/users.controller')
 
-router.post('/signup', UserController.user_signup)
+router.post('/signup', UserController.userSignup)
 
-router.post('/login', UserController.user_login)
+router.post('/login', UserController.userLogin)
 
-router.delete('/:userId', UserController.user_delete)
+router.delete('/:userId', UserController.userDelete)
 
-router.delete('/', UserController.user_delete_all)
+router.delete('/', UserController.userDeleteAll)
 
 module.exports = router

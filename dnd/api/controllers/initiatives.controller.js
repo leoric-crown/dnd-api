@@ -5,8 +5,6 @@ const endpoint = `http://${config.host}:${config.port}/initiatives/`
 const encounterEndpoint = `http://${config.host}:${config.port}/encounters/`
 const characterEndpoint = `http://${config.host}:${config.port}/characters/`
 
-
-
 const returnError = (err, res) => {
   console.log(err)
   res.status(500).json({
@@ -14,7 +12,7 @@ const returnError = (err, res) => {
   })
 }
 
-exports.initiatives_create = async (req, res, next) => {
+const initiativesCreate = async (req, res, next) => {
   try {
     const initiative = new Initiative ({
       _id: new mongoose.Types.ObjectId(),
@@ -43,7 +41,7 @@ exports.initiatives_create = async (req, res, next) => {
   }
 }
 
-exports.initiatives_get_all = async (req, res, next) => {
+const initiativesGetAll = async (req, res, next) => {
   try {
     const docs = await Initiative.find().select('-__v')
     .populate({
@@ -76,7 +74,10 @@ exports.initiatives_get_all = async (req, res, next) => {
             url: endpoint + doc._id
           }
         }
-        return {...doc._doc, ...add}
+        return {
+          ...doc._doc,
+          ...add
+        }
       })
     }
     if(docs) {
@@ -94,7 +95,7 @@ exports.initiatives_get_all = async (req, res, next) => {
   }
 }
 
-exports.initiatives_get = async (req, res, next) => {
+const initiativesGet = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
     const doc = await Initiative.findById(id).select('-__v').populate('encounter character').exec()
@@ -134,7 +135,7 @@ exports.initiatives_get = async (req, res, next) => {
   }
 }
 
-exports.initiatives_get_encounter = async (req, res, next) => {
+const initiativesGetEncounter = async (req, res, next) => {
   try {
     const encounterId = req.params.encounterId
     const docs = await Initiative.find({encounter: encounterId})
@@ -181,7 +182,7 @@ exports.initiatives_get_encounter = async (req, res, next) => {
   }
 }
 
-exports.initiatives_patch = async (req, res, next) => {
+const initiativesPatch = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
     const updateOps = {}
@@ -211,7 +212,7 @@ exports.initiatives_patch = async (req, res, next) => {
   }
 }
 
-exports.initiatives_delete = async (req, res, next) => {
+const initiativesDelete = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
     const result = await Initiative.deleteOne({ _id: id })
@@ -223,7 +224,7 @@ exports.initiatives_delete = async (req, res, next) => {
   }
 }
 
-exports.initiatives_delete_all = async (req, res, next) => {
+const initiativesDeleteAll = async (req, res, next) => {
   try {
     const result = await Initiative.remove().exec()
     res.status(200).json(result)
@@ -231,4 +232,14 @@ exports.initiatives_delete_all = async (req, res, next) => {
   catch (err) {
     returnError(err, res)
   }
+}
+
+module.exports = {
+  initiativesCreate,
+  initiativesGetAll,
+  initiativesGet,
+  initiativesGetEncounter,
+  initiativesPatch,
+  initiativesDelete,
+  initiativesDeleteAll
 }

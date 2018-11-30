@@ -1,8 +1,8 @@
+
 const config = require('../../config/main')
 const endpoint = `http://${config.host}:${config.port}/characters/`
 const mongoose = require('mongoose')
 const Character = require('../models/character.model')
-
 
 const returnError = (err, res) => {
   console.log(err)
@@ -10,7 +10,8 @@ const returnError = (err, res) => {
     error: err.toString()
   })
 }
-exports.characters_create = async (req, res, next) => {
+
+const charactersCreate = async (req, res, next) => {
   try {
     const character = new Character ({
       _id: new mongoose.Types.ObjectId(),
@@ -41,7 +42,7 @@ exports.characters_create = async (req, res, next) => {
   }
 }
 
-exports.characters_get_all = async (req, res, next) => {
+const charactersGetAll = async (req, res, next) => {
   try{
     const docs = await Character.find().select('-__v').exec()
     const response = {
@@ -54,7 +55,10 @@ exports.characters_get_all = async (req, res, next) => {
             url: endpoint + doc._id
           }
         }
-        return {...doc._doc, ...add}
+        return {
+          ...doc._doc,
+          ...add
+        }
       })
     }
     if(docs) {
@@ -72,7 +76,7 @@ exports.characters_get_all = async (req, res, next) => {
   }
 }
 
-exports.characters_get = async (req, res, next) => {
+const charactersGet = async (req, res, next) => {
   try {
     const id = req.params.characterId
     const doc = await Character.findById(id).select('-__v').exec()
@@ -90,7 +94,7 @@ exports.characters_get = async (req, res, next) => {
   }
 }
 
-exports.characters_patch = async (req, res, next) => {
+const charactersPatch = async (req, res, next) => {
   try{
     const id = req.params.characterId
     const updateOps = {}
@@ -120,7 +124,7 @@ exports.characters_patch = async (req, res, next) => {
   }
 }
 
-exports.characters_delete = async (req, res, next) => {
+const charactersDelete = async (req, res, next) => {
   try {
     const id = req.params.characterId
     const result = await Character.deleteOne({ _id: id }).exec()
@@ -131,7 +135,7 @@ exports.characters_delete = async (req, res, next) => {
   }
 }
 
-exports.characters_delete_all = async (req, res, next) => {
+const charactersDeleteAll = async (req, res, next) => {
   try {
     const result = await Character.remove().exec()
     res.status(200).json(result)
@@ -139,4 +143,13 @@ exports.characters_delete_all = async (req, res, next) => {
   catch (err) {
     returnError(err, res)
   }
+}
+
+module.exports = {
+  charactersCreate,
+  charactersGetAll,
+  charactersGet,
+  charactersPatch,
+  charactersDelete,
+  charactersDeleteAll
 }
