@@ -1,3 +1,4 @@
+require('dotenv').config()
 const config = require('./config/main')
 const express = require('express')
 const app = express()
@@ -6,16 +7,13 @@ const morgan = require('morgan')
 const bodyParser = require ('body-parser')
 const mongoose = require ('mongoose')
 const chalk = require('chalk')
-
 const encounterRoutes = require('./api/routes/encounters')
 const characterRoutes = require('./api/routes/characters')
 const initiativeRoutes = require('./api/routes/initiatives')
 const userRoutes = require('./api/routes/users')
-
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
 app.use('/users', userRoutes)
 app.use('/encounters', encounterRoutes)
 app.use('/characters', characterRoutes)

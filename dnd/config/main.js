@@ -1,6 +1,6 @@
 module.exports = {
-  host: 'localhost',
-  port: 5000,
-  dbpath: 'mongodb://localhost:27017/dndb',
-  jwt_key: 'fuckendungeonsanddragons'
+  host:  process.env.HOST,
+  port:  process.env.PORT,
+  dbpath:  process.env.DB_PATH,
+  jwtKey:  process.env.JWT_KEY
 }

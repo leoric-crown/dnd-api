@@ -1,9 +1,8 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const config = require('../../config/main')
-
-const User = require("../models/user.model");
+const User = require('../models/user.model');
 
 const returnError = (err, res) => {
   console.log(err)
@@ -38,7 +37,7 @@ const userSignup = async (req, res, next) => {
 
       const result = await user.save()
       res.status(201).json({
-        message: "User created"
+        message: 'User created'
       });
     }
   }
@@ -60,7 +59,7 @@ const userLogin = async (req, res, next) => {
             email: user.email,
             userId: user._id
           },
-          config.jwt_key,
+          config.jwtKey,
           {
             expiresIn: '4h'
           }
@@ -84,7 +83,7 @@ const userDelete = async (req, res, next) => {
   try {
     const result = await User.remove({ _id: req.params.userId })
     res.status(200).json({
-      message: "User has been removed."
+      message: 'User has been removed.'
     })
   }
   catch (err) {
@@ -96,7 +95,7 @@ const userDeleteAll = async (req, res, next) => {
   try {
     const result = await User.remove()
     res.status(200).json({
-      message: "All Users have been removed."
+      message: 'All Users have been removed.'
     })
   }
   catch (err) {

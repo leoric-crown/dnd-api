@@ -1,20 +1,19 @@
 const express = require('express')
 const router = express.Router()
-
 const InitiativesController = require('../controllers/initiatives.controller')
 
-router.post('/', InitiativesController.initiativesCreate)
+router.post('/', InitiativesController.createInitiative)
 
-router.get('/', InitiativesController.initiativesGetAll)
+router.get('/', InitiativesController.getAllInitiatives)
 
-router.get('/:initiativeId', InitiativesController.initiativesGet)
+router.get('/:initiativeId', InitiativesController.getInitiative)
 
-router.get('/encounter/:encounterId', InitiativesController.initiativesGetEncounter)
+router.get('/encounter/:encounterId', InitiativesController.getEncounterInitiative)
 
-router.patch('/:initiativeId', InitiativesController.initiativesPatch)
+router.patch('/:initiativeId', InitiativesController.patchInitiative)
 
-router.delete('/:initiativeId', InitiativesController.initiativesDelete)
+router.delete('/:initiativeId', InitiativesController.deleteInitiative)
 
-router.delete('/', InitiativesController.initiativesDeleteAll)
+router.delete('/', InitiativesController.deleteAllInitiatives)
 
 module.exports = router

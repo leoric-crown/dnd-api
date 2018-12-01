@@ -6,16 +6,16 @@ const EncountersController = require('../controllers/encounters.controller')
 require('../auth/authenticator')(passport)
 const authenticate = passport.authenticate('jwt', { session: false })
 
-router.get('/', authenticate, EncountersController.encountersGetAll)
+router.get('/', authenticate, EncountersController.getAllEncounters)
 
-router.get('/:encounterId', EncountersController.encountersGet)
+router.get('/:encounterId', EncountersController.getEncounter)
 
-router.post('/', EncountersController.encountersCreate)
+router.post('/', EncountersController.createEncounter)
 
-router.patch('/:encounterId', EncountersController.encountersPatch)
+router.patch('/:encounterId', EncountersController.patchEncounter)
 
-router.delete('/:encounterId', EncountersController.encountersDelete)
+router.delete('/:encounterId', EncountersController.deleteEncounter)
 
-router.delete('/', EncountersController.encountersDeleteAll)
+router.delete('/', EncountersController.deleteAllEncounters)
 
 module.exports = router

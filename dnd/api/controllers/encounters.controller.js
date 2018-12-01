@@ -10,7 +10,7 @@ const returnError = (err, res) => {
   })
 }
 
-const encountersCreate = async(req, res, next) => {
+const createEncounter = async(req, res, next) => {
   try{
     const encounter = new Encounter ({
       _id: new mongoose.Types.ObjectId(),
@@ -27,7 +27,10 @@ const encountersCreate = async(req, res, next) => {
     console.log(result)
     res.status(201).json({
       message: 'Successfully created new Encounter record.',
-      createdEncounter: {...encounter._doc, ...add}
+      createdEncounter: {
+        ...encounter._doc,
+        ...add
+      }
     })
   }
   catch(err) {
@@ -35,7 +38,8 @@ const encountersCreate = async(req, res, next) => {
   }
 }
 
-const encountersGetAll = async (req, res, next) => {
+const getAllEncounters = async (req, res, next) => {
+  console.log(req)
   try {
     const docs = await Encounter.find().select('-__v').exec()
     const response = {
@@ -69,7 +73,7 @@ const encountersGetAll = async (req, res, next) => {
   }
 }
 
-const encountersGet = async (req, res, next) => {
+const getEncounter = async (req, res, next) => {
   const id = req.params.encounterId
   try{
     const doc = await Encounter.findById(id).select('-__v').exec()
@@ -87,7 +91,7 @@ const encountersGet = async (req, res, next) => {
   }
 }
 
-const encountersPatch = async (req, res, next) => {
+const patchEncounter = async (req, res, next) => {
   try {
     const id = req.params.encounterId
     const updateOps = {}
@@ -109,7 +113,11 @@ const encountersPatch = async (req, res, next) => {
           url: endpoint + id
         }
       }
-      res.status(200).json({...result, ...{_id: id}, ...add})
+      res.status(200).json({
+        ...result,
+        ...{_id: id},
+        ...add
+      })
     }
   }
   catch (err) {
@@ -117,7 +125,7 @@ const encountersPatch = async (req, res, next) => {
   }
 }
 
-const encountersDelete = async (req, res, next) => {
+const deleteEncounter = async (req, res, next) => {
   try {
     const id = req.params.encounterId
     const result = await Encounter.deleteOne({ _id: id }).exec()
@@ -128,7 +136,7 @@ const encountersDelete = async (req, res, next) => {
   }
 }
 
-const encountersDeleteAll = async (req, res, next) => {
+const deleteAllEncounters = async (req, res, next) => {
   try{
     const result = await Encounter.remove().exec()
     res.status(200).json(result)
@@ -139,10 +147,10 @@ const encountersDeleteAll = async (req, res, next) => {
 }
 
 module.exports = {
-  encountersCreate,
-  encountersGetAll,
-  encountersGet,
-  encountersPatch,
-  encountersDelete,
-  encountersDeleteAll
+  createEncounter,
+  getAllEncounters,
+  getEncounter,
+  patchEncounter,
+  deleteEncounter,
+  deleteAllEncounters
 }

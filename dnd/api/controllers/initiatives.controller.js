@@ -1,9 +1,10 @@
 const config = require('../../config/main')
-const mongoose = require('mongoose')
-const Initiative = require('../models/initiative.model')
 const endpoint = `http://${config.host}:${config.port}/initiatives/`
 const encounterEndpoint = `http://${config.host}:${config.port}/encounters/`
 const characterEndpoint = `http://${config.host}:${config.port}/characters/`
+const mongoose = require('mongoose')
+const Initiative = require('../models/initiative.model')
+
 
 const returnError = (err, res) => {
   console.log(err)
@@ -12,7 +13,7 @@ const returnError = (err, res) => {
   })
 }
 
-const initiativesCreate = async (req, res, next) => {
+const createInitiative = async (req, res, next) => {
   try {
     const initiative = new Initiative ({
       _id: new mongoose.Types.ObjectId(),
@@ -41,7 +42,7 @@ const initiativesCreate = async (req, res, next) => {
   }
 }
 
-const initiativesGetAll = async (req, res, next) => {
+const getAllInitiatives = async (req, res, next) => {
   try {
     const docs = await Initiative.find().select('-__v')
     .populate({
@@ -95,7 +96,7 @@ const initiativesGetAll = async (req, res, next) => {
   }
 }
 
-const initiativesGet = async (req, res, next) => {
+const getInitiative = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
     const doc = await Initiative.findById(id).select('-__v').populate('encounter character').exec()
@@ -115,8 +116,14 @@ const initiativesGet = async (req, res, next) => {
       const character = doc._doc.character._doc
       const encounter = doc._doc.encounter._doc
       const add = {
-        encounter: {...encounter, ...encounterRequest},
-        character: {...character, ...characterRequest},
+        encounter: {
+          ...encounter,
+           ...encounterRequest
+         },
+        character: {
+          ...character,
+           ...characterRequest
+         },
         request:{
           type: 'GET',
           url: endpoint + doc._id
@@ -135,7 +142,7 @@ const initiativesGet = async (req, res, next) => {
   }
 }
 
-const initiativesGetEncounter = async (req, res, next) => {
+const getEncounterInitiative = async (req, res, next) => {
   try {
     const encounterId = req.params.encounterId
     const docs = await Initiative.find({encounter: encounterId})
@@ -165,7 +172,10 @@ const initiativesGetEncounter = async (req, res, next) => {
             url: endpoint + doc._id
           }
         }
-        return {...doc._doc, ...add}
+        return {
+          ...doc._doc,
+          ...add
+        }
       })
     }
     if(docs) {
@@ -182,7 +192,7 @@ const initiativesGetEncounter = async (req, res, next) => {
   }
 }
 
-const initiativesPatch = async (req, res, next) => {
+const patchInitiative = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
     const updateOps = {}
@@ -204,7 +214,10 @@ const initiativesPatch = async (req, res, next) => {
           url: endpoint + id
         }
       }
-      res.status(200).json({...result, ...{_id: id}, ...add})
+      res.status(200).json({
+        ...result,
+        ...{_id: id},
+        ...add})
     }
   }
   catch (err) {
@@ -212,7 +225,7 @@ const initiativesPatch = async (req, res, next) => {
   }
 }
 
-const initiativesDelete = async (req, res, next) => {
+const deleteInitiative = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
     const result = await Initiative.deleteOne({ _id: id })
@@ -224,7 +237,7 @@ const initiativesDelete = async (req, res, next) => {
   }
 }
 
-const initiativesDeleteAll = async (req, res, next) => {
+const deleteAllInitiatives = async (req, res, next) => {
   try {
     const result = await Initiative.remove().exec()
     res.status(200).json(result)
@@ -235,11 +248,11 @@ const initiativesDeleteAll = async (req, res, next) => {
 }
 
 module.exports = {
-  initiativesCreate,
-  initiativesGetAll,
-  initiativesGet,
-  initiativesGetEncounter,
-  initiativesPatch,
-  initiativesDelete,
-  initiativesDeleteAll
+  createInitiative,
+  getAllInitiatives,
+  getInitiative,
+  getEncounterInitiative,
+  patchInitiative,
+  deleteInitiative,
+  deleteAllInitiatives
 }

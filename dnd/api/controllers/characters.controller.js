@@ -1,4 +1,3 @@
-
 const config = require('../../config/main')
 const endpoint = `http://${config.host}:${config.port}/characters/`
 const mongoose = require('mongoose')
@@ -11,7 +10,7 @@ const returnError = (err, res) => {
   })
 }
 
-const charactersCreate = async (req, res, next) => {
+const createCharacter = async (req, res, next) => {
   try {
     const character = new Character ({
       _id: new mongoose.Types.ObjectId(),
@@ -34,7 +33,10 @@ const charactersCreate = async (req, res, next) => {
     }
     res.status(201).json({
       message: 'Successfully created new Character record.',
-      createdCharacter: {...character._doc, ...add}
+      createdCharacter: {
+        ...character._doc,
+        ...add
+      }
     })
   }
   catch (err) {
@@ -42,7 +44,7 @@ const charactersCreate = async (req, res, next) => {
   }
 }
 
-const charactersGetAll = async (req, res, next) => {
+const getAllCharacters = async (req, res, next) => {
   try{
     const docs = await Character.find().select('-__v').exec()
     const response = {
@@ -76,7 +78,7 @@ const charactersGetAll = async (req, res, next) => {
   }
 }
 
-const charactersGet = async (req, res, next) => {
+const getCharacter = async (req, res, next) => {
   try {
     const id = req.params.characterId
     const doc = await Character.findById(id).select('-__v').exec()
@@ -94,7 +96,7 @@ const charactersGet = async (req, res, next) => {
   }
 }
 
-const charactersPatch = async (req, res, next) => {
+const patchCharacter = async (req, res, next) => {
   try{
     const id = req.params.characterId
     const updateOps = {}
@@ -116,7 +118,11 @@ const charactersPatch = async (req, res, next) => {
           url: endpoint + id
         }
       }
-      res.status(200).json({...result, ...{_id: id}, ...add})
+      res.status(200).json({
+        ...result,
+        ...{_id: id},
+        ...add
+      })
     }
   }
   catch (err) {
@@ -124,7 +130,7 @@ const charactersPatch = async (req, res, next) => {
   }
 }
 
-const charactersDelete = async (req, res, next) => {
+const deleteCharacter = async (req, res, next) => {
   try {
     const id = req.params.characterId
     const result = await Character.deleteOne({ _id: id }).exec()
@@ -135,7 +141,7 @@ const charactersDelete = async (req, res, next) => {
   }
 }
 
-const charactersDeleteAll = async (req, res, next) => {
+const deleteAllCharacters = async (req, res, next) => {
   try {
     const result = await Character.remove().exec()
     res.status(200).json(result)
@@ -146,10 +152,10 @@ const charactersDeleteAll = async (req, res, next) => {
 }
 
 module.exports = {
-  charactersCreate,
-  charactersGetAll,
-  charactersGet,
-  charactersPatch,
-  charactersDelete,
-  charactersDeleteAll
+  createCharacter,
+  getAllCharacters,
+  getCharacter,
+  patchCharacter,
+  deleteCharacter,
+  deleteAllCharacters
 }

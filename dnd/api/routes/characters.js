@@ -3,16 +3,16 @@ const router = express.Router()
 
 const CharactersController = require('../controllers/characters.controller')
 
-router.get('/', CharactersController.charactersGetAll)
+router.get('/', CharactersController.getAllCharacters)
 
-router.get('/:characterId', CharactersController.charactersGet)
+router.get('/:characterId', CharactersController.getCharacter)
 
-router.post('/', CharactersController.charactersCreate)
+router.post('/', CharactersController.createCharacter)
 
-router.patch('/:characterId', CharactersController.charactersPatch)
+router.patch('/:characterId', CharactersController.patchCharacter)
 
-router.delete('/:characterId', CharactersController.charactersDelete)
+router.delete('/:characterId', CharactersController.deleteCharacter)
 
-router.delete('/', CharactersController.charactersDeleteAll)
+router.delete('/', CharactersController.deleteAllCharacters)
 
 module.exports = router
