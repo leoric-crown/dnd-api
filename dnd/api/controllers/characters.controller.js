@@ -46,7 +46,13 @@ const createCharacter = async (req, res, next) => {
 
 const getAllCharacters = async (req, res, next) => {
   try{
-    const docs = await Character.find().select('-__v').exec()
+    const docs = await Character.find()
+    .select('-__v')
+    .populate({
+      path: 'condition',
+      select: '-__v'
+    })
+    .exec()
     const response = {
       message: 'Fetched all Character Documents',
       count: docs.length,
@@ -81,7 +87,13 @@ const getAllCharacters = async (req, res, next) => {
 const getCharacter = async (req, res, next) => {
   try {
     const id = req.params.characterId
-    const doc = await Character.findById(id).select('-__v').exec()
+    const doc = await Character.findById(id)
+    .populate({
+      path: 'condition',
+      select: '-__v'
+    })
+    .select('-__v')
+    .exec()
     if(doc) {
       console.log(doc)
       res.status(200).json(doc)
