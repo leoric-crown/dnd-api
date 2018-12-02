@@ -6,10 +6,12 @@ const server = require('http').createServer(app)
 const morgan = require('morgan')
 const bodyParser = require ('body-parser')
 const mongoose = require ('mongoose')
+const mongoConfig = require('./config/mongo')
 const chalk = require('chalk')
 const encounterRoutes = require('./api/routes/encounters')
 const characterRoutes = require('./api/routes/characters')
 const initiativeRoutes = require('./api/routes/initiatives')
+const conditionRoutes = require('./api/routes/conditions')
 const userRoutes = require('./api/routes/users')
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -18,6 +20,7 @@ app.use('/users', userRoutes)
 app.use('/encounters', encounterRoutes)
 app.use('/characters', characterRoutes)
 app.use('/initiatives', initiativeRoutes)
+app.use('/conditions', conditionRoutes)
 
 mongoose.connection
 .once('open', () => {
@@ -25,10 +28,10 @@ mongoose.connection
   app.emit('ready')
 })
 .on('disconnect', () => {
-  console.log('disconnected')
+  console.log('mongoose disconnected')
 })
 .on('reconnect', () => {
-  console.log('reconnected')
+  console.log('mongoose reconnected')
 })
 .on('error', err => {
   console.error(chalk.bold.red('Error connecting to MongoDB: ' + err))
@@ -40,8 +43,9 @@ mongoose.connect(
   { useNewUrlParser: true, useCreateIndex: true }
 )
 
-app.on('ready', () => {
+app.on('ready', async () => {
   console.log(chalk.cyan('Express App is ready.'))
+  await mongoConfig()
   server.listen(config.port || 5000, () => {
     console.log(chalk.bold.magenta(`Server listening on: http://${config.host}:${config.port}...`))
   })

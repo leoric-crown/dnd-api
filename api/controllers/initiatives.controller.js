@@ -23,7 +23,6 @@ const createInitiative = async (req, res, next) => {
       active: req.body.active
     })
     const result = await initiative.save()
-    console.log(result)
 
     const add = {
       request: {
@@ -33,8 +32,11 @@ const createInitiative = async (req, res, next) => {
     }
 
     res.status(201).json({
-      message: 'Successfully created new Initiative record.',
-      createdInitiative: {...initiative._doc, ...add}
+      message: 'Successfully created new Initiative document',
+      createdInitiative: {
+        ...initiative._doc,
+        ...add
+      }
     })
   }
   catch (err) {
@@ -50,7 +52,7 @@ const getAllInitiatives = async (req, res, next) => {
     select: '-__v',
     }).exec()
     const response = {
-      message: 'Fetched all Initiative Documents',
+      message: 'Fetched all Initiative documents',
       count: docs.length,
       initiatives: docs.map(doc => {
         const encounterRequest = {
@@ -82,12 +84,10 @@ const getAllInitiatives = async (req, res, next) => {
       })
     }
     if(docs) {
-      console.log(response)
       res.status(200).json(response)
     } else {
-      console.log('No Initiatives in Initiative Collection')
       res.status(404).json({
-        message: 'No Initiatives in Initiative Collection'
+        message: 'No documents in Initiative collection'
       })
     }
   }
@@ -99,7 +99,10 @@ const getAllInitiatives = async (req, res, next) => {
 const getInitiative = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
-    const doc = await Initiative.findById(id).select('-__v').populate('encounter character').exec()
+    const doc = await Initiative.findById(id)
+      .select('-__v')
+      .populate('encounter character')
+      .exec()
     if(doc) {
       const encounterRequest = {
         request: {
@@ -130,11 +133,10 @@ const getInitiative = async (req, res, next) => {
         }
       }
       const response =  {...doc._doc, ...add}
-      console.log(response)
       res.status(200).json(response)
     }
     else{
-      res.status(404).json({ error: 'No Initiative found for given ID'})
+      res.status(404).json({ error: 'No Initiative document found for provided ID'})
     }
   }
   catch (err) {
@@ -154,7 +156,7 @@ const getEncounterInitiative = async (req, res, next) => {
     })
     .exec()
     const response = {
-      message: 'Fetched Initiative Documents for Encounter',
+      message: 'Fetched Initiative documents for Encounter',
       encounter: encounterId,
       count: docs.length,
       initiatives: docs.map(doc => {
@@ -179,11 +181,10 @@ const getEncounterInitiative = async (req, res, next) => {
       })
     }
     if(docs) {
-      console.log(response)
       res.status(200).json(response)
     } else {
       res.status(404).json({
-        message: 'No Initiatives found for provided Encounter Id'
+        message: 'No Initiative documents found for provided Encounter Id'
       })
     }
   }
@@ -201,13 +202,10 @@ const patchInitiative = async (req, res, next) => {
     }
     const result = await Initiative.updateOne({ _id: id }, { $set: updateOps }).exec()
     if(result.n === 0 ) {
-      const message = 'Patch failed: Initiative not found.'
-      console.log(message)
       res.status(500).json({
-        error: message
+        error: 'Patch failed: Initiative document not found.'
       })
     } else {
-      console.log(result)
       const add = {
         request:{
           type: 'GET',

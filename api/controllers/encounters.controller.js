@@ -24,9 +24,8 @@ const createEncounter = async(req, res, next) => {
         url: endpoint + encounter._id
       }
     }
-    console.log(result)
     res.status(201).json({
-      message: 'Successfully created new Encounter record.',
+      message: 'Successfully created new Encounter document',
       createdEncounter: {
         ...encounter._doc,
         ...add
@@ -39,11 +38,10 @@ const createEncounter = async(req, res, next) => {
 }
 
 const getAllEncounters = async (req, res, next) => {
-  console.log(req)
   try {
     const docs = await Encounter.find().select('-__v').exec()
     const response = {
-      message: 'Fetched all Encounter Documents',
+      message: 'Fetched all Encounter documents',
       count: docs.length,
       encounters: docs.map(doc => {
         const add = {
@@ -59,12 +57,10 @@ const getAllEncounters = async (req, res, next) => {
       })
     }
     if(docs) {
-      console.log(response)
       res.status(200).json(response)
     } else {
-      console.log('No Encounters in Encounter Collection')
       res.status(404).json({
-        message: 'No Encounters in Encounter Collection'
+        message: 'No documents in Encounter collection'
       })
     }
   }
@@ -78,11 +74,10 @@ const getEncounter = async (req, res, next) => {
   try{
     const doc = await Encounter.findById(id).select('-__v').exec()
     if(doc) {
-      console.log(doc)
       res.status(200).json(doc)
     } else {
       res.status(404).json({
-        message: 'No valid Encounter found with provided ID'
+        message: 'No Encounter document found for provided ID'
       })
     }
   }
@@ -100,13 +95,10 @@ const patchEncounter = async (req, res, next) => {
     }
     const result = await Encounter.updateOne({ _id: id }, { $set: updateOps }).exec()
     if(result.n === 0) {
-      const message = 'Patch failed: Encounter not found.'
-      console.log(message)
       res.status(500).json({
-        error: message
+        error: 'Patch failed: Encounter document not found.'
       })
     } else {
-      console.log(result)
       const add = {
         request:{
           type: 'GET',

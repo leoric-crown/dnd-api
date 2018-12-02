@@ -24,7 +24,6 @@ const createCharacter = async (req, res, next) => {
     })
 
     const result = await character.save()
-    console.log(result)
     const add = {
       request: {
         type: 'GET',
@@ -32,7 +31,7 @@ const createCharacter = async (req, res, next) => {
       }
     }
     res.status(201).json({
-      message: 'Successfully created new Character record.',
+      message: 'Successfully created new Character document',
       createdCharacter: {
         ...character._doc,
         ...add
@@ -46,9 +45,15 @@ const createCharacter = async (req, res, next) => {
 
 const getAllCharacters = async (req, res, next) => {
   try{
-    const docs = await Character.find().select('-__v').exec()
+    const docs = await Character.find()
+    .select('-__v')
+    .populate({
+      path: 'condition',
+      select: '-__v'
+    })
+    .exec()
     const response = {
-      message: 'Fetched all Character Documents',
+      message: 'Fetched all Character documents',
       count: docs.length,
       characters: docs.map(doc => {
         const add = {
@@ -64,12 +69,10 @@ const getAllCharacters = async (req, res, next) => {
       })
     }
     if(docs) {
-      console.log(response)
       res.status(200).json(response)
     } else {
-      console.log('No Characters in Character Collection')
       res.status(404).json({
-        message: 'No Characters in Character Collection'
+        message: 'No documents in Character collection'
       })
     }
   }
@@ -81,13 +84,18 @@ const getAllCharacters = async (req, res, next) => {
 const getCharacter = async (req, res, next) => {
   try {
     const id = req.params.characterId
-    const doc = await Character.findById(id).select('-__v').exec()
+    const doc = await Character.findById(id)
+    .populate({
+      path: 'condition',
+      select: '-__v'
+    })
+    .select('-__v')
+    .exec()
     if(doc) {
-      console.log(doc)
       res.status(200).json(doc)
     } else {
       res.status(404).json({
-        message: 'No valid Character found with provided ID'
+        message: 'No Character document found for provided ID'
       })
     }
   }
@@ -105,13 +113,11 @@ const patchCharacter = async (req, res, next) => {
     }
     const result = await Character.updateOne({ _id: id }, { $set: updateOps }).exec()
     if(result.n === 0) {
-      const message = 'Patch failed: Character not found.'
-      console.log(message)
+      const message = 'Patch failed: Character document not found.'
       res.status(500).json({
         error: message
       })
     } else {
-      console.log(result)
       const add = {
         request:{
           type: 'GET',

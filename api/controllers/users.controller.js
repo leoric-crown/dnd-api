@@ -12,10 +12,8 @@ const returnError = (err, res) => {
 }
 
 const returnAuthError = res => {
-  message = 'Authentication failed.'
-  console.log(message)
   res.status(401).json({
-    message: message
+    message: 'Authentication failed.'
   })
 }
 
@@ -25,7 +23,7 @@ const userSignup = async (req, res, next) => {
     const user = await User.find({ email: req.body.email }).exec()
     if(user.length >= 1) {
       return res.status(409).json({
-        message: 'E-mail is already registered.'
+        message: 'E-mail is already registered'
       })
     } else {
       const hash = await bcrypt.hash(req.body.password, 10)
@@ -65,7 +63,7 @@ const userLogin = async (req, res, next) => {
           }
         )
         return res.status(200).json({
-          message: 'Authentication successful.',
+          message: 'Authentication successful',
           token: token
         })
       }
@@ -83,7 +81,7 @@ const userDelete = async (req, res, next) => {
   try {
     const result = await User.remove({ _id: req.params.userId })
     res.status(200).json({
-      message: 'User has been removed.'
+      message: 'User has been removed'
     })
   }
   catch (err) {
@@ -95,7 +93,7 @@ const userDeleteAll = async (req, res, next) => {
   try {
     const result = await User.remove()
     res.status(200).json({
-      message: 'All Users have been removed.'
+      message: 'All Users have been removed'
     })
   }
   catch (err) {
