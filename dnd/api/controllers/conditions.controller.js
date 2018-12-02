@@ -31,10 +31,8 @@ const getAllConditions = async (req, res, next) => {
       })
     }
     if(docs) {
-      console.log(response)
       res.status(200).json(response)
     } else {
-      console.log('No Conditions in Condition Collection')
       res.status(404).json({
         message: 'No Conditions in Condition Collection'
       })

@@ -12,10 +12,8 @@ const returnError = (err, res) => {
 }
 
 const returnAuthError = res => {
-  message = 'Authentication failed.'
-  console.log(message)
   res.status(401).json({
-    message: message
+    message: 'Authentication failed.'
   })
 }
 

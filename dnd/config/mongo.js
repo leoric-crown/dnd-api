@@ -15,21 +15,27 @@ const fetchConditions = async () => {
       const response = await fetch('http://www.dnd5eapi.co/api/conditions/')
       const result = await response.json()
       const conditions = result.results
-      const newConditions = new Array()
-      for(var k = 0; k < conditions.length; k++) {
-        const exists = await Condition.find({ name: conditions[k].name }).exec()
-        if(exists.length === 0) {
-          var conditionResponse = await fetch(conditions[k].url)
-          var fetchCondition = await conditionResponse.json()
-          const newCondition = new Condition({
+      const conditionNames = conditions.map(condition => {
+        return condition.name
+      })
+      const matches = await Condition.find({ name: { $in: conditionNames }})
+      const matchNames = matches.map(match => {
+        return match.name
+      })
+      const getNewConditions = conditions.map(async (condition) => {
+        if (!matchNames.includes(condition.name)) {
+          const conditionResponse = await fetch(condition.url)
+          const fetchedCondition = await conditionResponse.json()
+          return new Condition({
             _id: new mongoose.Types.ObjectId(),
-            name: fetchCondition.name,
-            desc: fetchCondition.desc,
+            name: fetchedCondition.name,
+            desc: fetchedCondition.desc,
             fromApi: true
           })
-          newConditions.push(newCondition)
         }
-      }
+      })
+      const newConditions = await Promise.all(getNewConditions)
+
       if(newConditions.length > 0) {
         console.log(chalk.yellow.bold(`${newConditions.length} new Conditions fetched!`))
         await Condition.insertMany(newConditions)
@@ -42,7 +48,7 @@ const fetchConditions = async () => {
         console.log(chalk.green.bold('Conditions successfully saved!'))
         return
       } else {
-        console.log(chalk.orange.bold('No new Conditions found!'))
+        console.log(chalk.yellow.bold('No new Conditions found!'))
       }
     return
     }

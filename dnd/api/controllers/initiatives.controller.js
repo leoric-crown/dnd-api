@@ -23,7 +23,6 @@ const createInitiative = async (req, res, next) => {
       active: req.body.active
     })
     const result = await initiative.save()
-    console.log(result)
 
     const add = {
       request: {
@@ -82,10 +81,8 @@ const getAllInitiatives = async (req, res, next) => {
       })
     }
     if(docs) {
-      console.log(response)
       res.status(200).json(response)
     } else {
-      console.log('No Initiatives in Initiative Collection')
       res.status(404).json({
         message: 'No Initiatives in Initiative Collection'
       })
@@ -130,7 +127,6 @@ const getInitiative = async (req, res, next) => {
         }
       }
       const response =  {...doc._doc, ...add}
-      console.log(response)
       res.status(200).json(response)
     }
     else{
@@ -179,7 +175,6 @@ const getEncounterInitiative = async (req, res, next) => {
       })
     }
     if(docs) {
-      console.log(response)
       res.status(200).json(response)
     } else {
       res.status(404).json({
@@ -201,13 +196,10 @@ const patchInitiative = async (req, res, next) => {
     }
     const result = await Initiative.updateOne({ _id: id }, { $set: updateOps }).exec()
     if(result.n === 0 ) {
-      const message = 'Patch failed: Initiative not found.'
-      console.log(message)
       res.status(500).json({
-        error: message
+        error: 'Patch failed: Initiative not found.'
       })
     } else {
-      console.log(result)
       const add = {
         request:{
           type: 'GET',

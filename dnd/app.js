@@ -28,10 +28,10 @@ mongoose.connection
   app.emit('ready')
 })
 .on('disconnect', () => {
-  console.log('disconnected')
+  console.log('mongoose disconnected')
 })
 .on('reconnect', () => {
-  console.log('reconnected')
+  console.log('mongoose reconnected')
 })
 .on('error', err => {
   console.error(chalk.bold.red('Error connecting to MongoDB: ' + err))

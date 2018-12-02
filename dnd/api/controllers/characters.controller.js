@@ -24,7 +24,6 @@ const createCharacter = async (req, res, next) => {
     })
 
     const result = await character.save()
-    console.log(result)
     const add = {
       request: {
         type: 'GET',
@@ -70,10 +69,8 @@ const getAllCharacters = async (req, res, next) => {
       })
     }
     if(docs) {
-      console.log(response)
       res.status(200).json(response)
     } else {
-      console.log('No Characters in Character Collection')
       res.status(404).json({
         message: 'No Characters in Character Collection'
       })
@@ -95,7 +92,6 @@ const getCharacter = async (req, res, next) => {
     .select('-__v')
     .exec()
     if(doc) {
-      console.log(doc)
       res.status(200).json(doc)
     } else {
       res.status(404).json({
@@ -118,12 +114,10 @@ const patchCharacter = async (req, res, next) => {
     const result = await Character.updateOne({ _id: id }, { $set: updateOps }).exec()
     if(result.n === 0) {
       const message = 'Patch failed: Character not found.'
-      console.log(message)
       res.status(500).json({
         error: message
       })
     } else {
-      console.log(result)
       const add = {
         request:{
           type: 'GET',
