@@ -4,6 +4,7 @@ const encounterEndpoint = `http://${config.host}:${config.port}/encounters/`
 const characterEndpoint = `http://${config.host}:${config.port}/characters/`
 const mongoose = require('mongoose')
 const Initiative = require('../models/initiative.model')
+const Character = require ('../models/character.model')
 
 
 const returnError = (err, res) => {
@@ -15,12 +16,27 @@ const returnError = (err, res) => {
 
 const createInitiative = async (req, res, next) => {
   try {
+    const character = await Character.findById(req.body.character)
+    .select('-__v')
+    .exec()
+    const characterAdd = {
+      request: {
+        type: 'GET',
+        url: characterEndpoint + character._id
+      }
+    }
+    const characterStamp = {
+      ...character._doc,
+      ...characterAdd
+    }
+
     const initiative = new Initiative ({
       _id: new mongoose.Types.ObjectId(),
       encounter: req.body.encounter,
       character: req.body.character,
       initiative: req.body.initiative,
-      active: req.body.active
+      active: req.body.active,
+      characterStamp: characterStamp
     })
     const result = await initiative.save()
 
@@ -48,30 +64,15 @@ const getAllInitiatives = async (req, res, next) => {
   try {
     const docs = await Initiative.find().select('-__v')
     .populate({
-    path: ' encounter character',
+    path: 'character',
     select: '-__v',
-    }).exec()
+    })
+    .exec()
     const response = {
       message: 'Fetched all Initiative documents',
       count: docs.length,
       initiatives: docs.map(doc => {
-        const encounterRequest = {
-          request: {
-            type: 'GET',
-            url: encounterEndpoint + doc.encounter._id
-          }
-        }
-        const characterRequest = {
-            request: {
-              type: 'GET',
-              url: characterEndpoint + doc.character._id
-            }
-        }
-        const character = doc._doc.character._doc
-        const encounter = doc._doc.encounter._doc
         const add = {
-          encounter: {...encounter, ...encounterRequest},
-          character: {...character, ...characterRequest},
           request:{
             type: 'GET',
             url: endpoint + doc._id
@@ -101,10 +102,14 @@ const getInitiative = async (req, res, next) => {
     const id = req.params.initiativeId
     const doc = await Initiative.findById(id)
       .select('-__v')
-      .populate('encounter character')
+      .populate({
+      path: ' character',
+      select: '-__v',
+      })
       .exec()
     if(doc) {
       const encounterRequest = {
+        _id: doc.encounter._id,
         request: {
           type: 'GET',
           url: encounterEndpoint + doc.encounter._id
@@ -149,11 +154,8 @@ const getEncounterInitiative = async (req, res, next) => {
     const encounterId = req.params.encounterId
     const docs = await Initiative.find({encounter: encounterId})
     .select('-__v -encounter')
+    .populate('character encounter')
     .sort({initiative: 'desc'})
-    .populate({
-      path: 'character',
-      select: '-__v',
-    })
     .exec()
     const response = {
       message: 'Fetched Initiative documents for Encounter',
@@ -161,6 +163,7 @@ const getEncounterInitiative = async (req, res, next) => {
       count: docs.length,
       initiatives: docs.map(doc => {
         const characterRequest = {
+            _id: doc.character._id,
             request: {
               type: 'GET',
               url: characterEndpoint + doc.character._id

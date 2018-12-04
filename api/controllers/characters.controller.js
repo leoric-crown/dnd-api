@@ -47,10 +47,6 @@ const getAllCharacters = async (req, res, next) => {
   try{
     const docs = await Character.find()
     .select('-__v')
-    .populate({
-      path: 'condition',
-      select: '-__v'
-    })
     .exec()
     const response = {
       message: 'Fetched all Character documents',
@@ -85,10 +81,6 @@ const getCharacter = async (req, res, next) => {
   try {
     const id = req.params.characterId
     const doc = await Character.findById(id)
-    .populate({
-      path: 'condition',
-      select: '-__v'
-    })
     .select('-__v')
     .exec()
     if(doc) {
