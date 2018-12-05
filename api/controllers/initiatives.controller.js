@@ -17,17 +17,23 @@ const returnError = (err, res) => {
 const createInitiative = async (req, res, next) => {
   try {
     const character = await Character.findById(req.body.character)
-    .select('-__v')
+    .select('-__v -_id')
     .exec()
+    const overrideHp = {}
+    if(!character.player) {
+      overrideHp.hitpoints = character.maxhitpoints
+    }
     const characterAdd = {
       request: {
         type: 'GET',
-        url: characterEndpoint + character._id
+        url: characterEndpoint + req.body.character
       }
     }
     const characterStamp = {
       ...character._doc,
-      ...characterAdd
+      ...characterAdd,
+      ...overrideHp
+
     }
 
     const initiative = new Initiative ({
