@@ -12,16 +12,23 @@ const returnError = (err, res) => {
 
 const createCharacter = async (req, res, next) => {
   try {
+    console.log(req.body.hitpoints === null)
+    console.log(req.body.hitpoints == undefined)
+    console.log(req.body.hitpoints == null)
+    console.log(req.body)
+    console.log(req.body.hitpoints)
     const character = new Character ({
       _id: new mongoose.Types.ObjectId(),
       name: req.body.name,
       level: req.body.level,
       armorclass: req.body.armorclass,
-      hitpoints: req.body.hitpoints,
+      hitpoints: (req.body.hitpoints == null ? req.body.maxhitpoints : req.body.hitpoints),
       maxhitpoints: req.body.maxhitpoints,
-      condition: req.body.condition,
+      conditions: (req.body.conditions == null ? [] : req.body.conditions),
       player: req.body.player
     })
+    console.log('creating character: ')
+    console.log(character)
 
     const result = await character.save()
     const add = {
@@ -98,6 +105,7 @@ const getCharacter = async (req, res, next) => {
 
 const patchCharacter = async (req, res, next) => {
   try{
+    console.log(req.body)
     const id = req.params.characterId
     const updateOps = {}
     for(const ops of req.body) {
