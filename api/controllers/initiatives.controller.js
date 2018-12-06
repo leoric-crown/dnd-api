@@ -20,24 +20,31 @@ const createInitiative = async (req, res, next) => {
     .select('-__v -_id')
     .exec()
     const overrideHp = {}
+    var characterAdd = {}
+    const newId = new mongoose.Types.ObjectId()
     if(!character.player) {
-      overrideHp.hitpoints = character.maxhitpoints
-    }
-    const characterAdd = {
-      request: {
-        type: 'GET',
-        url: characterEndpoint + req.body.character
+      characterAdd = {
+        hitpoints: character.maxhitpoints,
+        request: {
+          type: 'GET',
+          url: endpoint + newId + '/character'
+        }
+      }
+    } else {
+      characterAdd = {
+        request: {
+          type: 'GET',
+          url: characterEndpoint + req.body.character
+        }
       }
     }
     const characterStamp = {
       ...character._doc,
-      ...characterAdd,
-      ...overrideHp
-
+      ...characterAdd
     }
 
     const initiative = new Initiative ({
-      _id: new mongoose.Types.ObjectId(),
+      _id: newId,
       encounter: req.body.encounter,
       character: req.body.character,
       initiative: req.body.initiative,
@@ -232,6 +239,45 @@ const patchInitiative = async (req, res, next) => {
   }
 }
 
+const patchCharacter = async (req, res, next) => {
+  try{
+    const id = req.params.initiativeId
+    var initiative = await Initiative.findById(id).exec()
+    if(initiative.n === 0) {
+      res.status(500).json({
+        error: 'Patch failed: Initiative document not found.'
+      })
+    }
+    if(initiative._doc.characterStamp.player) {
+      res.status(500).json({
+        error: 'Character is Player Character, use /character endpoint instead.'
+      })
+    } else {
+      const { characterStamp } = initiative._doc
+      for(const ops of req.body) {
+        characterStamp[ops.propName] = ops.value
+      }
+
+      const result = await Initiative.updateOne({_id: id}, {characterStamp}).exec()
+      if(result.n !== 0) {
+        const add = {
+          request:{
+            type: 'GET',
+            url: endpoint + id
+          }
+        }
+        res.status(200).json({
+          ...result,
+          ...{_id: id},
+          ...add})
+      }
+    }
+  }
+  catch (err) {
+    returnError(err, res)
+  }
+}
+
 const deleteInitiative = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
@@ -260,6 +306,7 @@ module.exports = {
   getInitiative,
   getEncounterInitiative,
   patchInitiative,
+  patchCharacter,
   deleteInitiative,
   deleteAllInitiatives
 }
