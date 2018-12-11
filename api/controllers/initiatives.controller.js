@@ -17,7 +17,7 @@ const returnError = (err, res) => {
 const createInitiative = async (req, res, next) => {
   try {
     const character = await Character.findById(req.body.character)
-    .select('-__v -_id')
+    .select('-__v')
     .exec()
     const overrideHp = {}
     var characterAdd = {}
