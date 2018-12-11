@@ -13,6 +13,20 @@ const characterRoutes = require('./api/routes/characters')
 const initiativeRoutes = require('./api/routes/initiatives')
 const conditionRoutes = require('./api/routes/conditions')
 const userRoutes = require('./api/routes/users')
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
+    return res.status(200).json({});
+  }
+  next();
+});
+
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -50,20 +64,7 @@ app.on('ready', async () => {
     console.log(chalk.bold.magenta(`Server listening on: http://${config.host}:${config.port}...`))
   })
 })
-/*
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  if (req.method === "OPTIONS") {
-    res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
-    return res.status(200).json({});
-  }
-  next();
-});
-*/
+
 app.use((req, res, next) => {
   const error = new Error('Resource not found')
   error.status = 404

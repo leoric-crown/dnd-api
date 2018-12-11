@@ -93,6 +93,14 @@ const patchEncounter = async (req, res, next) => {
     for(const ops of req.body) {
       updateOps[ops.propName] = ops.value
     }
+    var updatingActive = false
+    if(updateOps.status === 'Active') {
+      const activeOps = {
+        status: 'Concluded'
+      }
+      const resetActives = await Encounter.updateMany({status: 'Active'}, {$set: activeOps}).exec()
+      updatingActive = true
+    }
     const result = await Encounter.updateOne({ _id: id }, { $set: updateOps }).exec()
     if(result.n === 0) {
       res.status(500).json({
@@ -105,6 +113,7 @@ const patchEncounter = async (req, res, next) => {
           url: endpoint + id
         }
       }
+      if(add) add.activeEncounter = id
       res.status(200).json({
         ...result,
         ...{_id: id},
