@@ -92,14 +92,14 @@ const getAllEncounters = async (req, res, next) => {
 const getEncounter = async (req, res, next) => {
   const id = req.params.encounterId
   try{
-    const doc = await Encounter.findById(id).select('-__v').exec()
-    if(doc) {
+    const encounter = await Encounter.findById(id).select('-__v').exec()
+    if(encounter) {
       res.status(200).json({
         status: {
           code: 200,
           message: 'Successfully fetched Encounter document'
         },
-        ...doc._doc
+        encounter
       })
     } else {
       res.status(404).json({

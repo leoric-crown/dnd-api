@@ -100,16 +100,16 @@ const getAllCharacters = async (req, res, next) => {
 const getCharacter = async (req, res, next) => {
   try {
     const id = req.params.characterId
-    const doc = await Character.findById(id)
+    const character = await Character.findById(id)
     .select('-__v')
     .exec()
-    if(doc) {
+    if(character) {
       res.status(200).json({
         status: {
           code: 200,
           message: 'Successfully fetched Character document'
         },
-        ...doc._doc
+        character
       })
     } else {
       res.status(404).json({

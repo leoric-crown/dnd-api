@@ -174,13 +174,13 @@ const getInitiative = async (req, res, next) => {
           url: endpoint + doc._id
         }
       }
-      const response =  {...doc._doc, ...add}
+      const initiativeDoc =  {...doc._doc, ...add}
       res.status(200).json({
         status: {
           code: 200,
           message: 'Successfully fetched Initiative document'
         },
-        ...response
+        initiative: initiativeDoc
       })
     }
     else{

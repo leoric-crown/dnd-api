@@ -6,7 +6,7 @@ require('../auth/passport')()
 
 const authenticate = passport.authenticate('jwt', { session: false })
 
-router.get('/', authenticate, EncountersController.getAllEncounters)
+router.get('/', EncountersController.getAllEncounters)
 
 router.get('/:encounterId', EncountersController.getEncounter)
 

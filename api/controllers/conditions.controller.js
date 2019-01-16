@@ -96,16 +96,16 @@ const getAllConditions = async (req, res, next) => {
 const getCondition = async (req, res, next) => {
   try {
     const id = req.params.conditionId
-    const doc = await Condition.findById(id)
+    const condition = await Condition.findById(id)
     .select('-__v')
     .exec()
-    if(doc) {
+    if(condition) {
       res.status(200).json({
         status: {
           code: 200,
-          message: 'Successfully fecthed Condition document'
+          message: 'Successfully fetched Condition document'
         },
-        ...doc._doc
+        condition
       })
     } else {
       res.status(404).json({
@@ -117,6 +117,7 @@ const getCondition = async (req, res, next) => {
     }
   }
   catch (err) {
+    console.log(err)
     res.status(400).json({
       status:{
         code: 400,
