@@ -1,16 +1,10 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const tokens = require('../auth/token.utils')
 const config = require('../../config/main')
 const User = require('../models/user.model');
-const authenticator = require('../auth/authenticator')
-
-passport = authenticator()
-
-//App Key: 555336034947783
 
 const returnError = (err, res) => {
-  console.log(err)
   res.status(500).json({
     status: {
       code: 500,
@@ -27,7 +21,6 @@ const returnAuthError = res => {
     }
   })
 }
-
 
 const userSignup = async (req, res, next) => {
   try {
@@ -61,36 +54,19 @@ const userSignup = async (req, res, next) => {
   }
 }
 
-const upsertFbUser = (req, res, next) => {
-
-}
-
 const userLogin = async (req, res, next) => {
   try {
-    console.log('userLogin')
-    const user = await User.findOne({ email: req.body.email }).exec()
+    const user = await User.findOne({ email: req.body.email })
+    .select('-__v')
+    .exec()
     if (user.length < 1) {
       returnAuthError(res)
     } else {
       const result = await bcrypt.compare(req.body.password, user.password)
       if(result) {
-        const token = jwt.sign(
-          {
-            email: user.email,
-            userId: user._id
-          },
-          config.jwtKey,
-          {
-            expiresIn: '4h'
-          }
-        )
-        return res.status(200).json({
-          status: {
-            code: 200,
-            message: 'Authentication successful'
-          },
-          token: token
-        })
+        const { password, ...noPassword } = user._doc
+        req.user = noPassword
+        tokens.sendToken(req, res)
       }
       else{
         returnAuthError(res)

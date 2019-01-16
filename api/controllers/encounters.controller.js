@@ -4,7 +4,6 @@ const mongoose = require('mongoose')
 const Encounter = require('../models/encounter.model')
 
 const returnError = (err, res) => {
-  console.log(err)
   res.status(500).json({
     error: err.toString()
   })

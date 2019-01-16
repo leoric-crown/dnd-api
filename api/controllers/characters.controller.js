@@ -4,7 +4,6 @@ const mongoose = require('mongoose')
 const Character = require('../models/character.model')
 
 const returnError = (err, res) => {
-  console.log(err)
   res.status(500).json({
     error: err.toString()
   })
@@ -133,7 +132,6 @@ const getCharacter = async (req, res, next) => {
 
 const patchCharacter = async (req, res, next) => {
   try{
-    console.log(req.body)
     const id = req.params.characterId
     const updateOps = {}
     for(const ops of req.body) {

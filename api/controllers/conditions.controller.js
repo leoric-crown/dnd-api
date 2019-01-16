@@ -5,7 +5,6 @@ const Condition = require('../models/condition.model')
 const MongoSetting = require('../models/mongoSetting.model')
 
 const returnError = (err, res) => {
-  console.log(err)
   res.status(500).json({
     error: err.toString()
   })
@@ -19,7 +18,6 @@ const createCondition = async (req, res, next) => {
       desc: req.body.desc,
       fromApi: false
     })
-    console.log(condition)
     const result = await condition.save()
 
     const add = {

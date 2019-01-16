@@ -4,6 +4,7 @@ const FacebookTokenStrategy = require('passport-facebook-token')
 const ExtractJwt = require('passport-jwt').ExtractJwt
 const User = require('../models/user.model')
 const passport = require('passport')
+const UserController = require('../controllers/users.controller')
 
 const opts = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -17,11 +18,39 @@ const facebookOpts = {
   includeEmail: true
 }
 
-console.log('in authenticator.js', facebookOpts)
+const upsertFbUser = async (token, tokenSecret, profile, next) => {
+  try {
+    const user = await User.findOne({
+      'facebookProvider.id': profile.id
+    }).exec()
+
+    if(!user) {
+      const newUser = new User({
+        _id: new mongoose.Types.ObjectId(),
+        firstName: profile.name.givenName,
+        lastName: profile.name.familyName,
+        email: profile.emails[0].value,
+        facebookProvider: {
+          id: profile.id,
+          select: true
+        }
+      })
+      await newUser.save()
+      return next(null, newUser)
+    }
+    else {
+      return next(null, user)
+    }
+  }
+  catch (err) {
+    return next(err)
+  }
+}
 
 module.exports = () => {
+
   passport.use(new JwtStrategy(opts, function (payload, userInfo, done) {
-    User.findById(userInfo.userId, (err, user) => {
+    User.findById(userInfo.user._id, (err, user) => {
       if(err) {
         done(err, false)
       }
@@ -34,10 +63,8 @@ module.exports = () => {
   }))
 
   passport.use(new FacebookTokenStrategy(facebookOpts, function (accessToken, refreshToken, profile, done) {
-      console.log('in facebook strategy')
-      User.upsertFbUser(accessToken, refreshToken, profile,
-        (err, user) => {
-          return done(err, user)
-        })
+      upsertFbUser(accessToken, refreshToken, profile, (err, user) => {
+        return done(null, user)
+      })
   }))
 }

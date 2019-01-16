@@ -8,7 +8,6 @@ const Character = require ('../models/character.model')
 
 
 const returnError = (err, res) => {
-  console.log(err)
   res.status(500).json({
     status: {
       code: 500,
