@@ -17,6 +17,8 @@ morganBody(app, {logResponseBody: true})
 //const morgan = require('morgan')
 //app.use(morgan('dev'))
 
+console.log('CONFIG', config)
+
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(

@@ -16,7 +16,8 @@ const sendToken = async (req, res) => {
       message: 'JSON Web Token successfully generated'
     },
     email: req.user.email,
-    userId: req.user._id
+    userId: req.user._id,
+    isDM: req.user.isDM
   })
 }
 

@@ -4,6 +4,7 @@ const FacebookTokenStrategy = require('passport-facebook-token')
 const ExtractJwt = require('passport-jwt').ExtractJwt
 const User = require('../models/user.model')
 const passport = require('passport')
+const mongoose = require('mongoose')
 const UserController = require('../controllers/users.controller')
 
 const opts = {
@@ -20,6 +21,8 @@ const facebookOpts = {
 
 const upsertFbUser = async (token, tokenSecret, profile, next) => {
   try {
+    console.log('in upsertFbUser');
+    console.log(profile)
     const user = await User.findOne({
       'facebookProvider.id': profile.id
     }).exec()
@@ -30,6 +33,7 @@ const upsertFbUser = async (token, tokenSecret, profile, next) => {
         firstName: profile.name.givenName,
         lastName: profile.name.familyName,
         email: profile.emails[0].value,
+        isDM: false,
         facebookProvider: {
           id: profile.id,
           select: true
@@ -39,10 +43,13 @@ const upsertFbUser = async (token, tokenSecret, profile, next) => {
       return next(null, newUser)
     }
     else {
+      console.log('1err')
       return next(null, user)
     }
   }
   catch (err) {
+    console.log('2err')
+    console.log(err)
     return next(err)
   }
 }
