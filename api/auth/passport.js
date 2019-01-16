@@ -34,7 +34,7 @@ module.exports = () => {
   }))
 
   passport.use(new FacebookTokenStrategy(facebookOpts, function (accessToken, refreshToken, profile, done) {
-      console.log('in strategy')
+      console.log('in facebook strategy')
       User.upsertFbUser(accessToken, refreshToken, profile,
         (err, user) => {
           return done(err, user)

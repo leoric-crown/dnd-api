@@ -30,7 +30,10 @@ const createCondition = async (req, res, next) => {
     }
 
     res.status(201).json({
-      message: 'Successfully created new Condition document.',
+      status: {
+        code: 201,
+        message: 'Successfully created new Condition document.'
+      },
       createdCondition: {
         ...condition._doc,
         ...add
@@ -38,7 +41,12 @@ const createCondition = async (req, res, next) => {
     })
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error creating Condition document'
+      }
+    })
   }
 }
 
@@ -46,7 +54,6 @@ const getAllConditions = async (req, res, next) => {
   try {
     const docs = await Condition.find().select('-__v').exec()
     const response = {
-      message: 'Fetched all Condition documents',
       count: docs.length,
       conditions: docs.map(doc => {
         const add = {
@@ -62,15 +69,29 @@ const getAllConditions = async (req, res, next) => {
       })
     }
     if(docs) {
-      res.status(200).json(response)
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully fetched all Condition documents'
+        },
+        ...response
+      })
     } else {
       res.status(404).json({
-        message: 'No documents in Condition collection'
+        status: {
+          code: 404,
+          message: 'No documents in Condition collection'
+        }
       })
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error getting Condition documents'
+      }
+    })
   }
 }
 
@@ -81,15 +102,29 @@ const getCondition = async (req, res, next) => {
     .select('-__v')
     .exec()
     if(doc) {
-      res.status(200).json(doc)
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully fecthed Condition document'
+        },
+        ...doc._doc
+      })
     } else {
       res.status(404).json({
-        message: 'No Condition document found for provided ID'
+        status: {
+          code: 404,
+          message: 'No Condition document found for provided ID'
+        }
       })
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error fetching Condition document'
+      }
+    })
   }
 }
 
@@ -103,7 +138,10 @@ const patchCondition = async (req, res, next) => {
     const result = await Condition.updateOne({ _id: id }, { $set: updateOps }).exec()
     if(result.n === 0) {
       res.status(500).json({
-        error: 'Patch failed: Condition document not found.'
+        status: {
+          code: 500,
+          message: 'Patch failed: Condition document not found.'
+        }
       })
     } else {
       const add = {
@@ -113,6 +151,10 @@ const patchCondition = async (req, res, next) => {
         }
       }
       res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully patched Condition document'
+        },
         ...result,
         ...{_id: id},
         ...add
@@ -120,7 +162,12 @@ const patchCondition = async (req, res, next) => {
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error patching Condition document'
+      }
+    })
   }
 }
 
@@ -128,10 +175,21 @@ const deleteCondition = async (req, res, next) => {
   try {
     const id = req.params.conditionId
     const result = await Condition.deleteOne({ _id: id }).exec()
-    res.status(200).json(result)
+    res.status(200).json({
+      status: {
+        code: 200,
+        message: 'Successfully deleted Condition document'
+      },
+      ...result
+    })
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error deleting Condition document'
+      }
+    })
   }
 }
 
@@ -139,10 +197,21 @@ const deleteAllConditions = async (req, res, next) => {
   try {
     const result = await Condition.deleteMany().exec()
     const setting = await MongoSetting.deleteOne({ name: 'haveFetchedConditions' }).exec()
-    res.status(200).json(result)
+    res.status(200).json({
+      status: {
+        code: 200,
+        message: 'Successfully deleted all Condition documents'
+      },
+      ...result
+    })
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error deleting all Condition documents'
+      }
+    })
   }
 }
 

@@ -3,17 +3,28 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../../config/main')
 const User = require('../models/user.model');
+const authenticator = require('../auth/authenticator')
+
+passport = authenticator()
+
+//App Key: 555336034947783
 
 const returnError = (err, res) => {
   console.log(err)
   res.status(500).json({
-    error: err.toString()
+    status: {
+      code: 500,
+      message: err.toString()
+    }
   })
 }
 
 const returnAuthError = res => {
   res.status(401).json({
-    message: 'Authentication failed.'
+    status: {
+      code: 401,
+      message: 'Authentication failed'
+    }
   })
 }
 
@@ -23,7 +34,10 @@ const userSignup = async (req, res, next) => {
     const user = await User.find({ email: req.body.email }).exec()
     if(user.length >= 1) {
       return res.status(409).json({
-        message: 'E-mail is already registered'
+        status: {
+          code: 409,
+          message: 'E-mail is already registered'
+        }
       })
     } else {
       const hash = await bcrypt.hash(req.body.password, 10)
@@ -35,7 +49,10 @@ const userSignup = async (req, res, next) => {
 
       const result = await user.save()
       res.status(201).json({
-        message: 'User created'
+        status: {
+          code: 201,
+          message: 'User created'
+        }
       });
     }
   }
@@ -44,8 +61,13 @@ const userSignup = async (req, res, next) => {
   }
 }
 
+const upsertFbUser = (req, res, next) => {
+
+}
+
 const userLogin = async (req, res, next) => {
   try {
+    console.log('userLogin')
     const user = await User.findOne({ email: req.body.email }).exec()
     if (user.length < 1) {
       returnAuthError(res)
@@ -63,7 +85,10 @@ const userLogin = async (req, res, next) => {
           }
         )
         return res.status(200).json({
-          message: 'Authentication successful',
+          status: {
+            code: 200,
+            message: 'Authentication successful'
+          },
           token: token
         })
       }
@@ -81,7 +106,10 @@ const userDelete = async (req, res, next) => {
   try {
     const result = await User.remove({ _id: req.params.userId })
     res.status(200).json({
-      message: 'User has been removed'
+      status: {
+        code: 200,
+        message: 'User has been removed'
+      }
     })
   }
   catch (err) {
@@ -93,7 +121,10 @@ const userDeleteAll = async (req, res, next) => {
   try {
     const result = await User.remove()
     res.status(200).json({
-      message: 'All Users have been removed'
+      status: {
+        code: 200,
+        message: 'All Users have been removed'
+      }
     })
   }
   catch (err) {

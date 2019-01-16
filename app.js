@@ -3,7 +3,7 @@ const config = require('./config/main')
 const express = require('express')
 const app = express()
 const server = require('http').createServer(app)
-const morgan = require('morgan')
+//const morgan = require('morgan')
 const bodyParser = require ('body-parser')
 const mongoose = require ('mongoose')
 const mongoConfig = require('./config/mongo')
@@ -13,6 +13,11 @@ const characterRoutes = require('./api/routes/characters')
 const initiativeRoutes = require('./api/routes/initiatives')
 const conditionRoutes = require('./api/routes/conditions')
 const userRoutes = require('./api/routes/users')
+const morganBody = require('morgan-body')
+
+
+console.log('CONFIG', config)
+morganBody(app, {logResponseBody: true})
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -27,9 +32,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(morgan("dev"));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+//app.use(morgan('dev'))
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 app.use('/users', userRoutes)
 app.use('/encounters', encounterRoutes)
 app.use('/characters', characterRoutes)
