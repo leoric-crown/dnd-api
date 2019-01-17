@@ -263,6 +263,55 @@ const getEncounterInitiative = async (req, res, next) => {
   }
 }
 
+const setEncounterNextTurn = async (req, res, next) => {
+  try {
+    const encounterId = req.params.encounterId
+    const encounterInitiatives = await Initiative.find({encounter: encounterId})
+    .select('-__v -encounter')
+    .sort({initiative: 'desc'})
+    .exec()
+
+    const activeInitiative = encounterInitiatives.find(i => i.active === true)
+    if(!activeInitiative) {
+      const update = await Initiative.findByIdAndUpdate(encounterInitiatives[0]._id, {$set: {active: true}})
+      update.active = true
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully set initial Active Initiative'
+        },
+        activeInitiative: update
+      })
+    }
+    else {
+      const update = await Initiative.findByIdAndUpdate(activeInitiative._id, {$set: {active: false}})
+      update.active = false
+
+      index = (encounterInitiatives.indexOf(activeInitiative)+1)%encounterInitiatives.length
+      const newActiveInitiative = await Initiative.findByIdAndUpdate(encounterInitiatives[index]._id,
+      {$set: {active: true}})
+      newActiveInitiative.active = true
+
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully updated Active Initiative'
+        },
+        activeInitiative: newActiveInitiative
+      })
+    }
+
+  }
+  catch (err) {
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: "Error setting Encounter's active turn"
+      }
+    })
+  }
+}
+
 const patchInitiative = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
@@ -398,6 +447,7 @@ module.exports = {
   getAllInitiatives,
   getInitiative,
   getEncounterInitiative,
+  setEncounterNextTurn,
   patchInitiative,
   patchCharacter,
   deleteInitiative,

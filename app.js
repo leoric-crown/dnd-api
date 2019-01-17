@@ -17,8 +17,6 @@ morganBody(app, {logResponseBody: true})
 //const morgan = require('morgan')
 //app.use(morgan('dev'))
 
-console.log('CONFIG', config)
-
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -59,7 +57,7 @@ mongoose.connection
 console.log(chalk.yellow('Connecting to MongoDB at: '+config.dbpath))
 mongoose.connect(
   config.dbpath,
-  { useNewUrlParser: true, useCreateIndex: true }
+  { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false}
 )
 
 app.on('ready', async () => {
