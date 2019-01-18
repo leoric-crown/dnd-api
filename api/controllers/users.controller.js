@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const tokens = require('../auth/token.utils')
 const config = require('../../config/main')
 const User = require('../models/user.model');
+const ExtractJwt = require('passport-jwt').ExtractJwt
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -37,6 +38,8 @@ const userSignup = async (req, res, next) => {
       const user = new User({
         _id: new mongoose.Types.ObjectId(),
         email: req.body.email,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
         password: hash,
       })
 

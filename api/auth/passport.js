@@ -43,13 +43,10 @@ const upsertFbUser = async (token, tokenSecret, profile, next) => {
       return next(null, newUser)
     }
     else {
-      console.log('1err')
       return next(null, user)
     }
   }
   catch (err) {
-    console.log('2err')
-    console.log(err)
     return next(err)
   }
 }
@@ -71,7 +68,14 @@ module.exports = () => {
 
   passport.use(new FacebookTokenStrategy(facebookOpts, function (accessToken, refreshToken, profile, done) {
       upsertFbUser(accessToken, refreshToken, profile, (err, user) => {
-        return done(null, user)
+        if(err) {
+          done(err, false)
+        }
+        else if (user) {
+          done(null, user)
+        } else {
+          done(null, false)
+        }
       })
   }))
 }
