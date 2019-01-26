@@ -5,6 +5,8 @@ const CharactersController = require('../controllers/characters.controller')
 
 router.get('/', CharactersController.getAllCharacters)
 
+router.get('/:userId', CharactersController.getUserCharacters)
+
 router.get('/:characterId', CharactersController.getCharacter)
 
 router.post('/', CharactersController.createCharacter)

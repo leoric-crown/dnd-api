@@ -21,7 +21,7 @@ const createInitiative = async (req, res, next) => {
     const character = await Character.findById(req.body.character)
     .select('-__v')
     .exec()
-    const overrideHp = {}
+    //const overrideHp = {}
     var characterAdd = {}
     const newId = new mongoose.Types.ObjectId()
     if(!character.player) {

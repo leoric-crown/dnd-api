@@ -19,7 +19,8 @@ const createCharacter = async (req, res, next) => {
       hitpoints: (req.body.hitpoints == null ? req.body.maxhitpoints : req.body.hitpoints),
       maxhitpoints: req.body.maxhitpoints,
       conditions: (req.body.conditions == null ? [] : req.body.conditions),
-      player: req.body.player
+      player: req.body.player,
+      user: req.body.player ? req.body.user : null
     })
 
     const result = await character.save()
@@ -92,6 +93,56 @@ const getAllCharacters = async (req, res, next) => {
       status:{
         code: 400,
         message: 'Error getting Character documents'
+      }
+    })
+  }
+}
+
+const getUserCharacters = async (req, res, next) => {
+  try {
+    const userId = req.params.userId
+    const docs = await Character.find({user: userId})
+    .select('-__v')
+    .exec()
+    const response = {
+      count: docs.length,
+      characters: docs.map(doc => {
+        const add = {
+          request: {
+            type: 'GET',
+            url: endpoint + doc._id
+          }
+        }
+        return {
+          ...doc._doc,
+          ...add
+        }
+      })
+    }
+    if(docs) {
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: "Successfully fetched all User's Character documents"
+        },
+        ...response
+      })
+    } else {
+      res.status(404).json({
+        status: {
+          code: 404,
+          message: "No documents for User ID in Character collection"
+        }
+      })
+    }
+  }
+  catch(err) {
+
+    console.log(err)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: "Error getting User's Character documents"
       }
     })
   }
@@ -219,6 +270,7 @@ const deleteAllCharacters = async (req, res, next) => {
 module.exports = {
   createCharacter,
   getAllCharacters,
+  getUserCharacters,
   getCharacter,
   patchCharacter,
   deleteCharacter,
