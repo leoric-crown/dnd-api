@@ -20,7 +20,8 @@ const createCharacter = async (req, res, next) => {
       maxhitpoints: req.body.maxhitpoints,
       conditions: (req.body.conditions == null ? [] : req.body.conditions),
       player: req.body.player,
-      user: req.body.player ? req.body.user : null
+      user: req.body.player ? req.body.user : null,
+      picUrl : req.body.picUrl
     })
 
     const result = await character.save()

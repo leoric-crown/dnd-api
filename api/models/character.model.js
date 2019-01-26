@@ -9,7 +9,8 @@ const characterSchema = mongoose.Schema({
   maxhitpoints: { type: Number, required: true },
   conditions: {type: mongoose.Schema.Types.Mixed},
   player: Boolean,
-  user: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
+  user: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+  picUrl: String
 })
 
 module.exports = mongoose.model('Character', characterSchema)
