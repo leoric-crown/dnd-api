@@ -2,6 +2,8 @@ const config = require('../../config/main')
 const endpoint = `http://${config.host}:${config.port}/characters/`
 const mongoose = require('mongoose')
 const Character = require('../models/character.model')
+const validator = require('validator')
+const download = require('image-downloader')
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -9,7 +11,27 @@ const returnError = (err, res) => {
   })
 }
 
+const fetchImage = async (url) => {
+  console.log(url.substring(url.lastIndexOf('.')))
+  console.log('fetchImage' + url)
+  const options = {
+    url,
+    dest: './uploads/'+ new Date().getTime() + url.substring(url.lastIndexOf('.'))
+  }
+  try {
+    const result = await download.image(options)
+    console.log(result)
+    const path = result.filename.substring(result.filename.indexOf('/')+1)
+    console.log(path)
+    return `http://${config.host}:${config.port}/${path}`
+  }
+  catch(err) {
+    console.log(err)
+  }
+}
+
 const createCharacter = async (req, res, next) => {
+  console.log(req)
   try {
     const character = new Character ({
       _id: new mongoose.Types.ObjectId(),
@@ -21,7 +43,11 @@ const createCharacter = async (req, res, next) => {
       conditions: (req.body.conditions == null ? [] : req.body.conditions),
       player: req.body.player,
       user: req.body.player ? req.body.user : null,
-      picUrl : req.body.picUrl
+      picUrl : req.file ?
+        `http://${config.host}:${config.port}/${req.file.path.replace('\\','/')}` :
+        req.body.characterPic && validator.isURL(req.body.characterPic) ?
+          await fetchImage(req.body.characterPic) :
+          `http://${config.host}:${config.port}/uploads/characterPicDefault.jpg`
     })
 
     const result = await character.save()
@@ -43,6 +69,7 @@ const createCharacter = async (req, res, next) => {
     })
   }
   catch (err) {
+    console.log(err)
     res.status(400).json({
       status:{
         code: 400,
