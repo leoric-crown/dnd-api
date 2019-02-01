@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const Character = require('../models/character.model')
 const validator = require('validator')
 const download = require('image-downloader')
+const defaultPic = `http://${config.host}:${config.port}/uploads/characterPicDefault.jpg`
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -16,7 +17,7 @@ const fetchImage = async (url) => {
   console.log('fetchImage' + url)
   const options = {
     url,
-    dest: './uploads/'+ new Date().getTime() + url.substring(url.lastIndexOf('.'))
+    dest: './uploads/'+ new Date().getTime() + url.substring(url.lastIndexOf('/')+1)
   }
   try {
     const result = await download.image(options)
@@ -26,12 +27,12 @@ const fetchImage = async (url) => {
     return `http://${config.host}:${config.port}/${path}`
   }
   catch(err) {
-    console.log(err)
+    return defaultPic
   }
 }
 
 const createCharacter = async (req, res, next) => {
-  console.log(req)
+  console.log(req.body)
   try {
     const character = new Character ({
       _id: new mongoose.Types.ObjectId(),
@@ -47,7 +48,7 @@ const createCharacter = async (req, res, next) => {
         `http://${config.host}:${config.port}/${req.file.path.replace('\\','/')}` :
         req.body.characterPic && validator.isURL(req.body.characterPic) ?
           await fetchImage(req.body.characterPic) :
-          `http://${config.host}:${config.port}/uploads/characterPicDefault.jpg`
+          defaultPic
     })
 
     const result = await character.save()
@@ -191,12 +192,12 @@ const getCharacter = async (req, res, next) => {
         character
       })
     } else {
-      res.status(404).json({
-        status: {
-          code: 404,
-          message: 'No Character document found for provided ID'
-        }
-      })
+        res.status(404).json({
+          status: {
+            code: 404,
+            message: 'No Character document found for provided ID'
+          }
+        })
     }
   }
   catch(err) {
@@ -225,6 +226,63 @@ const patchCharacter = async (req, res, next) => {
         }
       })
     } else {
+        const add = {
+          request:{
+            type: 'GET',
+            url: endpoint + id
+          }
+        }
+        res.status(200).json({
+          status: {
+            code: 200,
+            message: 'Successfully patched Character document'
+          },
+          ...result,
+          ...{_id: id},
+          ...add
+        })
+    }
+  }
+  catch (err) {
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error patching Character document'
+      }
+    })
+  }
+}
+
+const updateCharacterImage = async (req, res, next) => {
+  try {
+    const id = req.params.characterId
+    const character = await Character.findById(id)
+    .select('-__v')
+    .exec()
+    if(!character) {
+      res.status(500).json({
+        status: {
+          code: 500,
+          message: 'Character Image update failed: Character document not found'
+        }
+      })
+    } else {
+      console.log(req)
+      if(!req.file) {
+        if(req.body.characterPic && validator.isURL(req.body.characterPic)) {
+          character.picUrl = await fetchImage(req.body.characterPic)
+        } else {
+          res.status(404).json({
+            status: {
+              code: 404,
+              message: 'Character Image update failed: no valid image or URL found'
+            }
+          })
+        }
+      } else {
+        character.picUrl = `http://${config.host}:${config.port}/${req.file.path.replace('\\','/')}`
+      }
+      const update = await character.save()
       const add = {
         request:{
           type: 'GET',
@@ -234,19 +292,20 @@ const patchCharacter = async (req, res, next) => {
       res.status(200).json({
         status: {
           code: 200,
-          message: 'Successfully patched Character document'
+          message: 'Successfully updated Character Image'
         },
-        ...result,
+        character,
         ...{_id: id},
         ...add
       })
     }
   }
   catch (err) {
+    console.log(err)
     res.status(400).json({
       status:{
         code: 400,
-        message: 'Error patching Character document'
+        message: 'Error updating Character Image'
       }
     })
   }
@@ -297,6 +356,7 @@ const deleteAllCharacters = async (req, res, next) => {
 
 module.exports = {
   createCharacter,
+  updateCharacterImage,
   getAllCharacters,
   getUserCharacters,
   getCharacter,

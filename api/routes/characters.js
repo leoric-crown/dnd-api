@@ -36,6 +36,8 @@ router.get('/:characterId', CharactersController.getCharacter)
 
 router.post('/', upload.single('characterPic'), CharactersController.createCharacter)
 
+router.post('/:characterId/pic', upload.single('characterPic'), CharactersController.updateCharacterImage)
+
 router.patch('/:characterId', CharactersController.patchCharacter)
 
 router.delete('/:characterId', CharactersController.deleteCharacter)
