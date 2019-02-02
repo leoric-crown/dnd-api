@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 const Character = require('../models/character.model')
 const validator = require('validator')
 const download = require('image-downloader')
-const defaultPic = `http://${config.host}:${config.port}/uploads/characterPicDefault.jpg`
+const defaultPic = 'uploads/characterPicDefault.jpg'
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -24,7 +24,7 @@ const fetchImage = async (url) => {
     console.log(result)
     const path = result.filename.substring(result.filename.indexOf('/')+1)
     console.log(path)
-    return `http://${config.host}:${config.port}/${path}`
+    return path
   }
   catch(err) {
     return defaultPic
@@ -45,7 +45,7 @@ const createCharacter = async (req, res, next) => {
       player: req.body.player,
       user: req.body.player ? req.body.user : null,
       picUrl : req.file ?
-        `http://${config.host}:${config.port}/${req.file.path.replace('\\','/')}` :
+        req.file.path.replace('\\','/') :
         req.body.characterPic && validator.isURL(req.body.characterPic) ?
           await fetchImage(req.body.characterPic) :
           defaultPic
@@ -268,6 +268,7 @@ const updateCharacterImage = async (req, res, next) => {
       })
     } else {
       console.log(req)
+      const oldPic = character.picUrl
       if(!req.file) {
         if(req.body.characterPic && validator.isURL(req.body.characterPic)) {
           character.picUrl = await fetchImage(req.body.characterPic)
@@ -280,9 +281,10 @@ const updateCharacterImage = async (req, res, next) => {
           })
         }
       } else {
-        character.picUrl = `http://${config.host}:${config.port}/${req.file.path.replace('\\','/')}`
+        character.picUrl = req.file.path.replace('\\','/')
       }
       const update = await character.save()
+      //TODO: delete oldPic
       const add = {
         request:{
           type: 'GET',
@@ -295,7 +297,7 @@ const updateCharacterImage = async (req, res, next) => {
           message: 'Successfully updated Character Image'
         },
         character,
-        ...{_id: id},
+        ...{_id: id, picUrl: `http://${config.host}:${config.port}/${character.picUrl}`},
         ...add
       })
     }

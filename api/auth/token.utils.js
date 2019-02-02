@@ -9,6 +9,7 @@ const createToken = user => {
 const sendToken = async (req, res) => {
   req.token = await createToken(req.user)
   console.log(chalk.bold.green('Authentication successful, JWT generated:\n', req.token))
+  console.log(req.user)
   return res.status(200).json({
     status: {
       code: 200,
