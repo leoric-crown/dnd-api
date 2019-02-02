@@ -1,9 +1,9 @@
 const express = require('express')
 const router = express.Router()
-const passport = require('passport')
 const EncountersController = require('../controllers/encounters.controller')
+const passport = require('passport')
+require('../auth/passport')()
 
-require('../auth/authenticator')(passport)
 const authenticate = passport.authenticate('jwt', { session: false })
 
 router.get('/', EncountersController.getAllEncounters)

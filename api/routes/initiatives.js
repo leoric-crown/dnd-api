@@ -4,11 +4,13 @@ const InitiativesController = require('../controllers/initiatives.controller')
 
 router.post('/', InitiativesController.createInitiative)
 
+router.post('/:encounterId/nextTurn', InitiativesController.setEncounterNextTurn)
+
 router.get('/', InitiativesController.getAllInitiatives)
 
 router.get('/:initiativeId', InitiativesController.getInitiative)
 
-router.get('/encounter/:encounterId', InitiativesController.getEncounterInitiative)
+router.get('/:encounterId', InitiativesController.getEncounterInitiative)
 
 router.patch('/:initiativeId', InitiativesController.patchInitiative)
 

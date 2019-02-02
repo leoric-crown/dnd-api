@@ -3,17 +3,20 @@ const config = require('./config/main')
 const express = require('express')
 const app = express()
 const server = require('http').createServer(app)
-const morgan = require('morgan')
 const bodyParser = require ('body-parser')
 const mongoose = require ('mongoose')
 const mongoConfig = require('./config/mongo')
 const chalk = require('chalk')
+const morganBody = require('morgan-body')
+//const morgan = require('morgan')
+//app.use(morgan('dev'))
 const encounterRoutes = require('./api/routes/encounters')
 const characterRoutes = require('./api/routes/characters')
 const initiativeRoutes = require('./api/routes/initiatives')
 const conditionRoutes = require('./api/routes/conditions')
 const userRoutes = require('./api/routes/users')
 
+morganBody(app, {logResponseBody: true})
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -27,9 +30,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(morgan("dev"));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use('/uploads', express.static('uploads'))
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 app.use('/users', userRoutes)
 app.use('/encounters', encounterRoutes)
 app.use('/characters', characterRoutes)
@@ -54,7 +57,7 @@ mongoose.connection
 console.log(chalk.yellow('Connecting to MongoDB at: '+config.dbpath))
 mongoose.connect(
   config.dbpath,
-  { useNewUrlParser: true, useCreateIndex: true }
+  { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false}
 )
 
 app.on('ready', async () => {

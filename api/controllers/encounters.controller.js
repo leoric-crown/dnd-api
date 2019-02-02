@@ -4,7 +4,6 @@ const mongoose = require('mongoose')
 const Encounter = require('../models/encounter.model')
 
 const returnError = (err, res) => {
-  console.log(err)
   res.status(500).json({
     error: err.toString()
   })
@@ -25,7 +24,10 @@ const createEncounter = async(req, res, next) => {
       }
     }
     res.status(201).json({
-      message: 'Successfully created new Encounter document',
+      status: {
+        code: 201,
+        message: 'Successfully created new Encounter document'
+      },
       createdEncounter: {
         ...encounter._doc,
         ...add
@@ -33,7 +35,12 @@ const createEncounter = async(req, res, next) => {
     })
   }
   catch(err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error creating Encounter document'
+      }
+    })
   }
 }
 
@@ -41,7 +48,6 @@ const getAllEncounters = async (req, res, next) => {
   try {
     const docs = await Encounter.find().select('-__v').exec()
     const response = {
-      message: 'Fetched all Encounter documents',
       count: docs.length,
       encounters: docs.map(doc => {
         const add = {
@@ -57,32 +63,60 @@ const getAllEncounters = async (req, res, next) => {
       })
     }
     if(docs) {
-      res.status(200).json(response)
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully fetched all Encounter documents'
+        },
+        ...response
+      })
     } else {
       res.status(404).json({
-        message: 'No documents in Encounter collection'
+        status: {
+          code: 404,
+          message: 'No documents in Encounter collection'
+        }
       })
     }
   }
   catch(err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error getting Encounter documents'
+      }
+    })
   }
 }
 
 const getEncounter = async (req, res, next) => {
   const id = req.params.encounterId
   try{
-    const doc = await Encounter.findById(id).select('-__v').exec()
-    if(doc) {
-      res.status(200).json(doc)
+    const encounter = await Encounter.findById(id).select('-__v').exec()
+    if(encounter) {
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully fetched Encounter document'
+        },
+        encounter
+      })
     } else {
       res.status(404).json({
-        message: 'No Encounter document found for provided ID'
+        status: {
+          code: 404,
+          message: 'No Encounter document found for provided ID'
+        }
       })
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error getting Encounter document'
+      }
+    })
   }
 }
 
@@ -93,18 +127,17 @@ const patchEncounter = async (req, res, next) => {
     for(const ops of req.body) {
       updateOps[ops.propName] = ops.value
     }
-    var updatingActive = false
-    if(updateOps.status === 'Active') {
-      const activeOps = {
-        status: 'Concluded'
-      }
-      const resetActives = await Encounter.updateMany({status: 'Active'}, {$set: activeOps}).exec()
-      updatingActive = true
+    const changeActive = (updateOps.status === 'Active')
+    if(changeActive) {
+      const resetActives = await Encounter.updateMany({status: 'Active'}, {$set: {status: 'Concluded'}}).exec()
     }
     const result = await Encounter.updateOne({ _id: id }, { $set: updateOps }).exec()
     if(result.n === 0) {
       res.status(500).json({
-        error: 'Patch failed: Encounter document not found.'
+        status: {
+          code: 500,
+          message: 'Patch failed: Encounter document not found'
+        }
       })
     } else {
       const add = {
@@ -115,6 +148,10 @@ const patchEncounter = async (req, res, next) => {
       }
       if(add) add.activeEncounter = id
       res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully patched Encounter document'
+        },
         ...result,
         ...{_id: id},
         ...add
@@ -122,7 +159,12 @@ const patchEncounter = async (req, res, next) => {
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error patching Encounter document'
+      }
+    })
   }
 }
 
@@ -130,20 +172,42 @@ const deleteEncounter = async (req, res, next) => {
   try {
     const id = req.params.encounterId
     const result = await Encounter.deleteOne({ _id: id }).exec()
-    res.status(200).json(result)
+    res.status(200).json({
+      status: {
+        code: 200,
+        message: 'Successfully deleted Encounter document'
+      },
+      ...result
+    })
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error deleting Encounter document'
+      }
+    })
   }
 }
 
 const deleteAllEncounters = async (req, res, next) => {
   try{
     const result = await Encounter.remove().exec()
-    res.status(200).json(result)
+    res.status(200).json({
+      status: {
+        code: 200,
+        message: 'Successfully deleted all Encounter documents'
+      },
+      ...result
+    })
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error deleting all Encounter documents'
+      }
+    })
   }
 }
 

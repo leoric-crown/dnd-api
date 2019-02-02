@@ -8,9 +8,11 @@ const Character = require ('../models/character.model')
 
 
 const returnError = (err, res) => {
-  console.log(err)
   res.status(500).json({
-    error: err.toString()
+    status: {
+      code: 500,
+      message: err.toString()
+    }
   })
 }
 
@@ -19,7 +21,7 @@ const createInitiative = async (req, res, next) => {
     const character = await Character.findById(req.body.character)
     .select('-__v')
     .exec()
-    const overrideHp = {}
+    //const overrideHp = {}
     var characterAdd = {}
     const newId = new mongoose.Types.ObjectId()
     if(!character.player) {
@@ -61,7 +63,10 @@ const createInitiative = async (req, res, next) => {
     }
 
     res.status(201).json({
-      message: 'Successfully created new Initiative document',
+      status: {
+        code: 201,
+        message: 'Successfully created new Initiative document'
+      },
       createdInitiative: {
         ...initiative._doc,
         ...add
@@ -69,7 +74,12 @@ const createInitiative = async (req, res, next) => {
     })
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error creating Initiative document'
+      }
+    })
   }
 }
 
@@ -98,15 +108,29 @@ const getAllInitiatives = async (req, res, next) => {
       })
     }
     if(docs) {
-      res.status(200).json(response)
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully fetched all Initiative documents'
+        },
+        ...response
+      })
     } else {
       res.status(404).json({
-        message: 'No documents in Initiative collection'
+        status: {
+          code: 404,
+          message: 'No documents in Initiative collection'
+        }
       })
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error getting Initiative documents'
+      }
+    })
   }
 }
 
@@ -150,15 +174,31 @@ const getInitiative = async (req, res, next) => {
           url: endpoint + doc._id
         }
       }
-      const response =  {...doc._doc, ...add}
-      res.status(200).json(response)
+      const initiativeDoc =  {...doc._doc, ...add}
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully fetched Initiative document'
+        },
+        initiative: initiativeDoc
+      })
     }
     else{
-      res.status(404).json({ error: 'No Initiative document found for provided ID'})
+      res.status(404).json({
+        status: {
+          code: 404,
+          message: 'No Initiative document found for provided ID'
+        }
+      })
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error getting Initiative document'
+      }
+    })
   }
 }
 
@@ -197,15 +237,78 @@ const getEncounterInitiative = async (req, res, next) => {
       })
     }
     if(docs) {
-      res.status(200).json(response)
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully fetched Initiative documents for given Encounter'
+        },
+        ...response
+      })
     } else {
       res.status(404).json({
-        message: 'No Initiative documents found for provided Encounter Id'
+        status: {
+          code: 404,
+          message: 'No Initiative documents found for provided ID'
+        }
       })
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error getting Initiative documents for Encounter'
+      }
+    })
+  }
+}
+
+const setEncounterNextTurn = async (req, res, next) => {
+  try {
+    const encounterId = req.params.encounterId
+    const encounterInitiatives = await Initiative.find({encounter: encounterId})
+    .select('-__v -encounter')
+    .sort({initiative: 'desc'})
+    .exec()
+
+    const activeInitiative = encounterInitiatives.find(i => i.active === true)
+    if(!activeInitiative) {
+      const update = await Initiative.findByIdAndUpdate(encounterInitiatives[0]._id, {$set: {active: true}})
+      update.active = true
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully set initial Active Initiative'
+        },
+        activeInitiative: update
+      })
+    }
+    else {
+      const update = await Initiative.findByIdAndUpdate(activeInitiative._id, {$set: {active: false}})
+      update.active = false
+
+      index = (encounterInitiatives.indexOf(activeInitiative)+1)%encounterInitiatives.length
+      const newActiveInitiative = await Initiative.findByIdAndUpdate(encounterInitiatives[index]._id,
+      {$set: {active: true}})
+      newActiveInitiative.active = true
+
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully updated Active Initiative'
+        },
+        activeInitiative: newActiveInitiative
+      })
+    }
+
+  }
+  catch (err) {
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: "Error setting Encounter's active turn"
+      }
+    })
   }
 }
 
@@ -219,7 +322,10 @@ const patchInitiative = async (req, res, next) => {
     const result = await Initiative.updateOne({ _id: id }, { $set: updateOps }).exec()
     if(result.n === 0 ) {
       res.status(500).json({
-        error: 'Patch failed: Initiative document not found.'
+        status: {
+          code: 500,
+          message: 'Patch failed: Initiative document not found'
+        }
       })
     } else {
       const add = {
@@ -229,13 +335,22 @@ const patchInitiative = async (req, res, next) => {
         }
       }
       res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully patched Initiative document'
+        },
         ...result,
         ...{_id: id},
         ...add})
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error patching Initiative document'
+      }
+    })
   }
 }
 
@@ -274,7 +389,12 @@ const patchCharacter = async (req, res, next) => {
     }
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error patching Initiative document'
+      }
+    })
   }
 }
 
@@ -283,20 +403,42 @@ const deleteInitiative = async (req, res, next) => {
     const id = req.params.initiativeId
     const result = await Initiative.deleteOne({ _id: id })
     .exec()
-    res.status(200).json(result)
+    res.status(200).json({
+      status: {
+        code: 200,
+        message: 'Successfully deleted Initiative document'
+      },
+      ...result
+    })
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error deleting Initiative document'
+      }
+    })
   }
 }
 
 const deleteAllInitiatives = async (req, res, next) => {
   try {
     const result = await Initiative.remove().exec()
-    res.status(200).json(result)
+    res.status(200).json({
+      status: {
+        code: 200,
+        message: 'Successfully deleted all Initiative documents'
+      },
+      ...result
+    })
   }
   catch (err) {
-    returnError(err, res)
+    res.status(400).json({
+      status:{
+        code: 400,
+        message: 'Error deleting all Initiative documents'
+      }
+    })
   }
 }
 
@@ -305,6 +447,7 @@ module.exports = {
   getAllInitiatives,
   getInitiative,
   getEncounterInitiative,
+  setEncounterNextTurn,
   patchInitiative,
   patchCharacter,
   deleteInitiative,
