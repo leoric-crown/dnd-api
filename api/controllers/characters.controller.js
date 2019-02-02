@@ -129,7 +129,7 @@ const getAllCharacters = async (req, res, next) => {
 
 const getUserCharacters = async (req, res, next) => {
   try {
-    const userId = req.params.userId
+    const userId = req.user._id
     const docs = await Character.find({user: userId})
     .select('-__v')
     .exec()

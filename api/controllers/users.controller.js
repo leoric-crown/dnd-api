@@ -45,12 +45,10 @@ const userSignup = async (req, res, next) => {
       })
 
       const result = await user.save()
-      res.status(201).json({
-        status: {
-          code: 201,
-          message: 'User created'
-        }
-      });
+
+      const { password, ...noPassword } = user._doc
+      req.user = noPassword
+      tokens.sendToken(req, res)
     }
   }
   catch (err) {

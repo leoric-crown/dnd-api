@@ -16,7 +16,10 @@ router.post('/login', UserController.userLogin)
 router.post('/auth/facebook', authenticateFb, tokens.sendToken)
 
 router.post('/verifyToken', authenticate, (req, res) => {
+  console.log(req.user)
+  const { password, ...user } = req.user._doc
   res.status(200).json({
+    user,
     status: {
       code: 200,
       message: 'JSON Web Token successfully verified'

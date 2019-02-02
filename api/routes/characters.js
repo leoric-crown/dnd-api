@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const multer = require('multer')
 const CharactersController = require('../controllers/characters.controller')
+const passport = require('passport')
+const authenticate = passport.authenticate('jwt', { session: false })
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -30,7 +32,7 @@ const upload = multer({
 
 router.get('/', CharactersController.getAllCharacters)
 
-router.get('/:userId', CharactersController.getUserCharacters)
+router.get('/user', authenticate, CharactersController.getUserCharacters)
 
 router.get('/:characterId', CharactersController.getCharacter)
 
