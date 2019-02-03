@@ -52,9 +52,9 @@ module.exports = class ServerApp {
       })
 
 
-      return this.app.listen(5000, () => {
+      return this.app.listen(this.config.port, () => {
           console.log(this.chalk.bold.green(`
-              Started Image Express server listening to port 5000
+              Started Image Express server listening to port ${this.config.port}
           `.trim()));
       });
     }

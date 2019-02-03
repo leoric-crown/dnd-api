@@ -12,12 +12,12 @@ mongoose.connect(
     { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false},
 );
 
-mongoose.connection.once('open', function() {
+mongoose.connection.once('open', () => {
     console.log(chalk.bold.magenta(`Succesfully Connected to MongoDB at ${config.dbpath}`))
 });
 
 
-mongoose.connection.on('error', function(err) {
+mongoose.connection.on('error', (err) => {
     console.log(chalk.bold.red(`Error connecting to MongoDB at ${config.dbpath}`))
     process.exit()
 });
