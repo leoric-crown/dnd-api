@@ -54,7 +54,7 @@ module.exports = class ServerApp {
 
       return this.app.listen(this.config.port, () => {
           console.log(this.chalk.bold.green(`
-              Started Image Express server listening to port ${this.config.port}
+              Started DnD Express server listening to port ${this.config.port}
           `.trim()));
       });
     }
