@@ -8,6 +8,7 @@ const createToken = user => {
 
 const sendToken = async (req, res) => {
   req.token = await createToken(req.user)
+  console.log('tokens sendToken', req.user)
   console.log(chalk.bold.green('Authentication successful, JWT generated:\n', req.token))
   console.log(req.user)
   return res.status(200).json({
@@ -18,7 +19,8 @@ const sendToken = async (req, res) => {
     jwt: req.token,
     email: req.user.email,
     userId: req.user._id,
-    isDM: req.user.isDM
+    isDM: req.user.isDM,
+    photoUrl: req.user.photoUrl
   })
 }
 

@@ -15,9 +15,10 @@ const userSchema = mongoose.Schema({
   },
   password: { type: String },
   isDM: { type: Boolean, default: false },
+  photoUrl: String,
   facebookProvider: {
     id: { type: String },
-    select: false
+    select: false,
   }
 })
 

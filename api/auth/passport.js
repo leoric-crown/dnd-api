@@ -34,6 +34,7 @@ const upsertFbUser = async (token, tokenSecret, profile, next) => {
         lastName: profile.name.familyName,
         email: profile.emails[0].value,
         isDM: false,
+        photoUrl: profile.photos[0].value,
         facebookProvider: {
           id: profile.id,
           select: true
