@@ -11,7 +11,7 @@ mongoose.connect(
     config.dbpath,
     { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false },
 );
-
+//testing SSH again
 mongoose.connection.once('open', () => {
     console.log(chalk.bold.magenta(`Succesfully Connected to MongoDB at ${config.dbpath}`))
 });
