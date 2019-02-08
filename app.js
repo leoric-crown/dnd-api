@@ -12,12 +12,10 @@ mongoose.connect(
     { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false },
 );
 
-console.log('testng ssh again')
 mongoose.connection.once('open', () => {
     console.log(chalk.bold.magenta(`Succesfully Connected to MongoDB at ${config.dbpath}`))
 });
 
-console.log('testing ssh')
 mongoose.connection.on('error', (err) => {
     console.log(chalk.bold.red(`Error connecting to MongoDB at ${config.dbpath}`))
     process.exit()
