@@ -22,10 +22,9 @@ module.exports = class ServerApp {
      */
     constructor(config, chalk) {
         this.config = config;
-        console.log(typeof(chalk))
         this.chalk = chalk
     }
-    
+
     start() {
       this.app = express();
       this.app.use(cors());
