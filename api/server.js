@@ -14,21 +14,26 @@ const initiativeRoutes = require('./routes/initiatives')
 const conditionRoutes = require('./routes/conditions')
 const userRoutes = require('./routes/users')
 
-morganBody(app, {logResponseBody: true})
-
 module.exports = class ServerApp {
     /**
      * @param  {Object} config single object containing configurations
+     * @param  {chalk} chalk for terminal styling
      * @return {App}    Server application wrapper
      */
     constructor(config, chalk) {
         this.config = config;
+        console.log(typeof(chalk))
         this.chalk = chalk
     }
+    
     start() {
       this.app = express();
       this.app.use(cors());
       this.app.use(bodyParser.json());
+      // TODO: Use NODE_ENV to choose to use morganBody module
+      morganBody(this.app, {logResponseBody: true})
+
+      // Routes
       this.app.use('/uploads', express.static('uploads'))
       this.app.use('/users', userRoutes)
       this.app.use('/encounters', encounterRoutes)
