@@ -7,7 +7,7 @@ const passport = require('passport')
 
 require('../auth/passport')()
 const authenticate = passport.authenticate('jwt', { session: false })
-const authenticateFb = passport.authenticate('facebook-token', {session: false})
+const authenticateFb = passport.authenticate('facebook-token', { session: false })
 
 router.post('/signup', UserController.userSignup)
 

@@ -3,7 +3,7 @@ const config = require('../../config/main')
 const chalk = require('chalk')
 
 const createToken = user => {
-  return jwt.sign({user}, config.jwtKey, {expiresIn: '24h'})
+  return jwt.sign({ user }, config.jwtKey, { expiresIn: '24h' })
 }
 
 const sendToken = async (req, res) => {
@@ -23,5 +23,5 @@ const sendToken = async (req, res) => {
 }
 
 module.exports = {
-   sendToken
+  sendToken
 }

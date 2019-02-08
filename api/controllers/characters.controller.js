@@ -17,16 +17,16 @@ const fetchImage = async (url) => {
   console.log('fetchImage' + url)
   const options = {
     url,
-    dest: './uploads/'+ new Date().getTime() + url.substring(url.lastIndexOf('/')+1)
+    dest: './uploads/' + new Date().getTime() + url.substring(url.lastIndexOf('/') + 1)
   }
   try {
     const result = await download.image(options)
     console.log(result)
-    const path = result.filename.substring(result.filename.indexOf('/')+1)
+    const path = result.filename.substring(result.filename.indexOf('/') + 1)
     console.log(path)
     return path
   }
-  catch(err) {
+  catch (err) {
     return defaultPic
   }
 }
@@ -34,7 +34,7 @@ const fetchImage = async (url) => {
 const createCharacter = async (req, res, next) => {
   console.log(req.body)
   try {
-    const character = new Character ({
+    const character = new Character({
       _id: new mongoose.Types.ObjectId(),
       name: req.body.name,
       level: req.body.level,
@@ -44,8 +44,8 @@ const createCharacter = async (req, res, next) => {
       conditions: (req.body.conditions == null ? [] : req.body.conditions),
       player: req.body.player,
       user: req.body.player ? req.body.user : null,
-      picUrl : req.file ?
-        req.file.path.replace('\\','/') :
+      picUrl: req.file ?
+        req.file.path.replace('\\', '/') :
         req.body.characterPic && validator.isURL(req.body.characterPic) ?
           await fetchImage(req.body.characterPic) :
           defaultPic
@@ -72,7 +72,7 @@ const createCharacter = async (req, res, next) => {
   catch (err) {
     console.log(err)
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error creating Character document'
       }
@@ -81,10 +81,10 @@ const createCharacter = async (req, res, next) => {
 }
 
 const getAllCharacters = async (req, res, next) => {
-  try{
+  try {
     const docs = await Character.find()
-    .select('-__v')
-    .exec()
+      .select('-__v')
+      .exec()
     const response = {
       count: docs.length,
       characters: docs.map(doc => {
@@ -100,7 +100,7 @@ const getAllCharacters = async (req, res, next) => {
         }
       })
     }
-    if(docs) {
+    if (docs) {
       res.status(200).json({
         status: {
           code: 200,
@@ -117,9 +117,9 @@ const getAllCharacters = async (req, res, next) => {
       })
     }
   }
-  catch(err) {
+  catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error getting Character documents'
       }
@@ -130,9 +130,9 @@ const getAllCharacters = async (req, res, next) => {
 const getUserCharacters = async (req, res, next) => {
   try {
     const userId = req.user._id
-    const docs = await Character.find({user: userId})
-    .select('-__v')
-    .exec()
+    const docs = await Character.find({ user: userId })
+      .select('-__v')
+      .exec()
     const response = {
       count: docs.length,
       characters: docs.map(doc => {
@@ -148,7 +148,7 @@ const getUserCharacters = async (req, res, next) => {
         }
       })
     }
-    if(docs) {
+    if (docs) {
       res.status(200).json({
         status: {
           code: 200,
@@ -165,11 +165,11 @@ const getUserCharacters = async (req, res, next) => {
       })
     }
   }
-  catch(err) {
+  catch (err) {
 
     console.log(err)
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: "Error getting User's Character documents"
       }
@@ -181,9 +181,9 @@ const getCharacter = async (req, res, next) => {
   try {
     const id = req.params.characterId
     const character = await Character.findById(id)
-    .select('-__v')
-    .exec()
-    if(character) {
+      .select('-__v')
+      .exec()
+    if (character) {
       res.status(200).json({
         status: {
           code: 200,
@@ -192,17 +192,17 @@ const getCharacter = async (req, res, next) => {
         character
       })
     } else {
-        res.status(404).json({
-          status: {
-            code: 404,
-            message: 'No Character document found for provided ID'
-          }
-        })
+      res.status(404).json({
+        status: {
+          code: 404,
+          message: 'No Character document found for provided ID'
+        }
+      })
     }
   }
-  catch(err) {
+  catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error getting Character document'
       }
@@ -211,14 +211,14 @@ const getCharacter = async (req, res, next) => {
 }
 
 const patchCharacter = async (req, res, next) => {
-  try{
+  try {
     const id = req.params.characterId
     const updateOps = {}
-    for(const ops of req.body) {
+    for (const ops of req.body) {
       updateOps[ops.propName] = ops.value
     }
     const result = await Character.updateOne({ _id: id }, { $set: updateOps }).exec()
-    if(result.n === 0) {
+    if (result.n === 0) {
       res.status(500).json({
         status: {
           code: 500,
@@ -226,26 +226,26 @@ const patchCharacter = async (req, res, next) => {
         }
       })
     } else {
-        const add = {
-          request:{
-            type: 'GET',
-            url: endpoint + id
-          }
+      const add = {
+        request: {
+          type: 'GET',
+          url: endpoint + id
         }
-        res.status(200).json({
-          status: {
-            code: 200,
-            message: 'Successfully patched Character document'
-          },
-          ...result,
-          ...{_id: id},
-          ...add
-        })
+      }
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully patched Character document'
+        },
+        ...result,
+        ...{ _id: id },
+        ...add
+      })
     }
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error patching Character document'
       }
@@ -257,9 +257,9 @@ const updateCharacterImage = async (req, res, next) => {
   try {
     const id = req.params.characterId
     const character = await Character.findById(id)
-    .select('-__v')
-    .exec()
-    if(!character) {
+      .select('-__v')
+      .exec()
+    if (!character) {
       res.status(500).json({
         status: {
           code: 500,
@@ -269,8 +269,8 @@ const updateCharacterImage = async (req, res, next) => {
     } else {
       console.log(req)
       const oldPic = character.picUrl
-      if(!req.file) {
-        if(req.body.characterPic && validator.isURL(req.body.characterPic)) {
+      if (!req.file) {
+        if (req.body.characterPic && validator.isURL(req.body.characterPic)) {
           character.picUrl = await fetchImage(req.body.characterPic)
         } else {
           res.status(404).json({
@@ -281,12 +281,12 @@ const updateCharacterImage = async (req, res, next) => {
           })
         }
       } else {
-        character.picUrl = req.file.path.replace('\\','/')
+        character.picUrl = req.file.path.replace('\\', '/')
       }
       const update = await character.save()
       //TODO: delete oldPic
       const add = {
-        request:{
+        request: {
           type: 'GET',
           url: endpoint + id
         }
@@ -297,7 +297,7 @@ const updateCharacterImage = async (req, res, next) => {
           message: 'Successfully updated Character Image'
         },
         character,
-        ...{_id: id, picUrl: `http://${config.host}:${config.port}/${character.picUrl}`},
+        ...{ _id: id, picUrl: `http://${config.host}:${config.port}/${character.picUrl}` },
         ...add
       })
     }
@@ -305,7 +305,7 @@ const updateCharacterImage = async (req, res, next) => {
   catch (err) {
     console.log(err)
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error updating Character Image'
       }
@@ -327,7 +327,7 @@ const deleteCharacter = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error deleting Character document'
       }
@@ -348,7 +348,7 @@ const deleteAllCharacters = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error deleting all Character documents'
       }

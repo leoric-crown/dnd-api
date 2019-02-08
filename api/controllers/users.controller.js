@@ -26,7 +26,7 @@ const returnAuthError = res => {
 const userSignup = async (req, res, next) => {
   try {
     const user = await User.find({ email: req.body.email }).exec()
-    if(user.length >= 1) {
+    if (user.length >= 1) {
       return res.status(409).json({
         status: {
           code: 409,
@@ -59,18 +59,18 @@ const userSignup = async (req, res, next) => {
 const userLogin = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email })
-    .select('-__v')
-    .exec()
+      .select('-__v')
+      .exec()
     if (user.length < 1) {
       returnAuthError(res)
     } else {
       const result = await bcrypt.compare(req.body.password, user.password)
-      if(result) {
+      if (result) {
         const { password, ...noPassword } = user._doc
         req.user = noPassword
         tokens.sendToken(req, res)
       }
-      else{
+      else {
         returnAuthError(res)
       }
     }
