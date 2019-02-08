@@ -16,7 +16,7 @@ mongoose.connection.once('open', () => {
     console.log(chalk.bold.magenta(`Succesfully Connected to MongoDB at ${config.dbpath}`))
 });
 
-
+//testing ssh one more time
 mongoose.connection.on('error', (err) => {
     console.log(chalk.bold.red(`Error connecting to MongoDB at ${config.dbpath}`))
     process.exit()
