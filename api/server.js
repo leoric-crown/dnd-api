@@ -31,9 +31,9 @@ module.exports = class ServerApp {
       this.app.use(bodyParser.json());
       // TODO: Use NODE_ENV to choose to use morganBody module
       morganBody(this.app, {logResponseBody: true})
+      this.app.use('/uploads', express.static('uploads'))
 
       // Routes
-      this.app.use('/uploads', express.static('uploads'))
       this.app.use('/users', userRoutes)
       this.app.use('/encounters', encounterRoutes)
       this.app.use('/characters', characterRoutes)
