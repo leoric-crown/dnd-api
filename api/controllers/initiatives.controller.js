@@ -4,7 +4,7 @@ const encounterEndpoint = `http://${config.host}:${config.port}/encounters/`
 const characterEndpoint = `http://${config.host}:${config.port}/characters/`
 const mongoose = require('mongoose')
 const Initiative = require('../models/initiative.model')
-const Character = require ('../models/character.model')
+const Character = require('../models/character.model')
 
 
 const returnError = (err, res) => {
@@ -19,12 +19,12 @@ const returnError = (err, res) => {
 const createInitiative = async (req, res, next) => {
   try {
     const character = await Character.findById(req.body.character)
-    .select('-__v')
-    .exec()
+      .select('-__v')
+      .exec()
     //const overrideHp = {}
     var characterAdd = {}
     const newId = new mongoose.Types.ObjectId()
-    if(!character.player) {
+    if (!character.player) {
       characterAdd = {
         hitpoints: character.maxhitpoints,
         request: {
@@ -45,7 +45,7 @@ const createInitiative = async (req, res, next) => {
       ...characterAdd
     }
 
-    const initiative = new Initiative ({
+    const initiative = new Initiative({
       _id: newId,
       encounter: req.body.encounter,
       character: req.body.character,
@@ -75,7 +75,7 @@ const createInitiative = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error creating Initiative document'
       }
@@ -86,17 +86,17 @@ const createInitiative = async (req, res, next) => {
 const getAllInitiatives = async (req, res, next) => {
   try {
     const docs = await Initiative.find().select('-__v')
-    .populate({
-    path: 'character',
-    select: '-__v',
-    })
-    .exec()
+      .populate({
+        path: 'character',
+        select: '-__v',
+      })
+      .exec()
     const response = {
       message: 'Fetched all Initiative documents',
       count: docs.length,
       initiatives: docs.map(doc => {
         const add = {
-          request:{
+          request: {
             type: 'GET',
             url: endpoint + doc._id
           }
@@ -107,7 +107,7 @@ const getAllInitiatives = async (req, res, next) => {
         }
       })
     }
-    if(docs) {
+    if (docs) {
       res.status(200).json({
         status: {
           code: 200,
@@ -126,7 +126,7 @@ const getAllInitiatives = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error getting Initiative documents'
       }
@@ -140,11 +140,11 @@ const getInitiative = async (req, res, next) => {
     const doc = await Initiative.findById(id)
       .select('-__v')
       .populate({
-      path: ' character',
-      select: '-__v',
+        path: ' character',
+        select: '-__v',
       })
       .exec()
-    if(doc) {
+    if (doc) {
       const encounterRequest = {
         _id: doc.encounter._id,
         request: {
@@ -153,28 +153,28 @@ const getInitiative = async (req, res, next) => {
         }
       }
       const characterRequest = {
-          request: {
-            type: 'GET',
-            url: characterEndpoint + doc.character._id
-          }
+        request: {
+          type: 'GET',
+          url: characterEndpoint + doc.character._id
+        }
       }
       const character = doc._doc.character._doc
       const encounter = doc._doc.encounter._doc
       const add = {
         encounter: {
           ...encounter,
-           ...encounterRequest
-         },
+          ...encounterRequest
+        },
         character: {
           ...character,
-           ...characterRequest
-         },
-        request:{
+          ...characterRequest
+        },
+        request: {
           type: 'GET',
           url: endpoint + doc._id
         }
       }
-      const initiativeDoc =  {...doc._doc, ...add}
+      const initiativeDoc = { ...doc._doc, ...add }
       res.status(200).json({
         status: {
           code: 200,
@@ -183,7 +183,7 @@ const getInitiative = async (req, res, next) => {
         initiative: initiativeDoc
       })
     }
-    else{
+    else {
       res.status(404).json({
         status: {
           code: 404,
@@ -194,7 +194,7 @@ const getInitiative = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error getting Initiative document'
       }
@@ -205,27 +205,27 @@ const getInitiative = async (req, res, next) => {
 const getEncounterInitiative = async (req, res, next) => {
   try {
     const encounterId = req.params.encounterId
-    const docs = await Initiative.find({encounter: encounterId})
-    .select('-__v -encounter')
-    .populate('character encounter')
-    .sort({initiative: 'desc'})
-    .exec()
+    const docs = await Initiative.find({ encounter: encounterId })
+      .select('-__v -encounter')
+      .populate('character encounter')
+      .sort({ initiative: 'desc' })
+      .exec()
     const response = {
       message: 'Fetched Initiative documents for Encounter',
       encounter: encounterId,
       count: docs.length,
       initiatives: docs.map(doc => {
         const characterRequest = {
-            _id: doc.character._id,
-            request: {
-              type: 'GET',
-              url: characterEndpoint + doc.character._id
-            }
+          _id: doc.character._id,
+          request: {
+            type: 'GET',
+            url: characterEndpoint + doc.character._id
+          }
         }
         const character = doc._doc.character._doc
         const add = {
-          character: {...character, ...characterRequest},
-          request:{
+          character: { ...character, ...characterRequest },
+          request: {
             type: 'GET',
             url: endpoint + doc._id
           }
@@ -236,7 +236,7 @@ const getEncounterInitiative = async (req, res, next) => {
         }
       })
     }
-    if(docs) {
+    if (docs) {
       res.status(200).json({
         status: {
           code: 200,
@@ -255,7 +255,7 @@ const getEncounterInitiative = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error getting Initiative documents for Encounter'
       }
@@ -266,14 +266,14 @@ const getEncounterInitiative = async (req, res, next) => {
 const setEncounterNextTurn = async (req, res, next) => {
   try {
     const encounterId = req.params.encounterId
-    const encounterInitiatives = await Initiative.find({encounter: encounterId})
-    .select('-__v -encounter')
-    .sort({initiative: 'desc'})
-    .exec()
+    const encounterInitiatives = await Initiative.find({ encounter: encounterId })
+      .select('-__v -encounter')
+      .sort({ initiative: 'desc' })
+      .exec()
 
     const activeInitiative = encounterInitiatives.find(i => i.active === true)
-    if(!activeInitiative) {
-      const update = await Initiative.findByIdAndUpdate(encounterInitiatives[0]._id, {$set: {active: true}})
+    if (!activeInitiative) {
+      const update = await Initiative.findByIdAndUpdate(encounterInitiatives[0]._id, { $set: { active: true } })
       update.active = true
       res.status(200).json({
         status: {
@@ -284,12 +284,12 @@ const setEncounterNextTurn = async (req, res, next) => {
       })
     }
     else {
-      const update = await Initiative.findByIdAndUpdate(activeInitiative._id, {$set: {active: false}})
+      const update = await Initiative.findByIdAndUpdate(activeInitiative._id, { $set: { active: false } })
       update.active = false
 
-      index = (encounterInitiatives.indexOf(activeInitiative)+1)%encounterInitiatives.length
+      index = (encounterInitiatives.indexOf(activeInitiative) + 1) % encounterInitiatives.length
       const newActiveInitiative = await Initiative.findByIdAndUpdate(encounterInitiatives[index]._id,
-      {$set: {active: true}})
+        { $set: { active: true } })
       newActiveInitiative.active = true
 
       res.status(200).json({
@@ -316,11 +316,11 @@ const patchInitiative = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
     const updateOps = {}
-    for(const ops of req.body) {
+    for (const ops of req.body) {
       updateOps[ops.propName] = ops.value
     }
     const result = await Initiative.updateOne({ _id: id }, { $set: updateOps }).exec()
-    if(result.n === 0 ) {
+    if (result.n === 0) {
       res.status(500).json({
         status: {
           code: 500,
@@ -329,7 +329,7 @@ const patchInitiative = async (req, res, next) => {
       })
     } else {
       const add = {
-        request:{
+        request: {
           type: 'GET',
           url: endpoint + id
         }
@@ -340,13 +340,14 @@ const patchInitiative = async (req, res, next) => {
           message: 'Successfully patched Initiative document'
         },
         ...result,
-        ...{_id: id},
-        ...add})
+        ...{ _id: id },
+        ...add
+      })
     }
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error patching Initiative document'
       }
@@ -355,42 +356,43 @@ const patchInitiative = async (req, res, next) => {
 }
 
 const patchCharacter = async (req, res, next) => {
-  try{
+  try {
     const id = req.params.initiativeId
     var initiative = await Initiative.findById(id).exec()
-    if(initiative.n === 0) {
+    if (initiative.n === 0) {
       res.status(500).json({
         error: 'Patch failed: Initiative document not found.'
       })
     }
-    if(initiative._doc.characterStamp.player) {
+    if (initiative._doc.characterStamp.player) {
       res.status(500).json({
         error: 'Character is Player Character, use /character endpoint instead.'
       })
     } else {
       const { characterStamp } = initiative._doc
-      for(const ops of req.body) {
+      for (const ops of req.body) {
         characterStamp[ops.propName] = ops.value
       }
 
-      const result = await Initiative.updateOne({_id: id}, {characterStamp}).exec()
-      if(result.n !== 0) {
+      const result = await Initiative.updateOne({ _id: id }, { characterStamp }).exec()
+      if (result.n !== 0) {
         const add = {
-          request:{
+          request: {
             type: 'GET',
             url: endpoint + id
           }
         }
         res.status(200).json({
           ...result,
-          ...{_id: id},
-          ...add})
+          ...{ _id: id },
+          ...add
+        })
       }
     }
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error patching Initiative document'
       }
@@ -402,7 +404,7 @@ const deleteInitiative = async (req, res, next) => {
   try {
     const id = req.params.initiativeId
     const result = await Initiative.deleteOne({ _id: id })
-    .exec()
+      .exec()
     res.status(200).json({
       status: {
         code: 200,
@@ -413,7 +415,7 @@ const deleteInitiative = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error deleting Initiative document'
       }
@@ -434,7 +436,7 @@ const deleteAllInitiatives = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error deleting all Initiative documents'
       }

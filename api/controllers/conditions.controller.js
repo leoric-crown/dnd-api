@@ -40,7 +40,7 @@ const createCondition = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error creating Condition document'
       }
@@ -57,7 +57,7 @@ const getAllConditions = async (req, res, next) => {
         const add = {
           request: {
             type: 'GET',
-            url:endpoint + doc._id
+            url: endpoint + doc._id
           }
         }
         return {
@@ -66,7 +66,7 @@ const getAllConditions = async (req, res, next) => {
         }
       })
     }
-    if(docs) {
+    if (docs) {
       res.status(200).json({
         status: {
           code: 200,
@@ -85,7 +85,7 @@ const getAllConditions = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error getting Condition documents'
       }
@@ -97,9 +97,9 @@ const getCondition = async (req, res, next) => {
   try {
     const id = req.params.conditionId
     const condition = await Condition.findById(id)
-    .select('-__v')
-    .exec()
-    if(condition) {
+      .select('-__v')
+      .exec()
+    if (condition) {
       res.status(200).json({
         status: {
           code: 200,
@@ -119,7 +119,7 @@ const getCondition = async (req, res, next) => {
   catch (err) {
     console.log(err)
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error fetching Condition document'
       }
@@ -131,11 +131,11 @@ const patchCondition = async (req, res, next) => {
   try {
     const id = req.params.conditionId
     const updateOps = {}
-    for(const ops of req.body) {
+    for (const ops of req.body) {
       updateOps[ops.propName] = ops.value
     }
     const result = await Condition.updateOne({ _id: id }, { $set: updateOps }).exec()
-    if(result.n === 0) {
+    if (result.n === 0) {
       res.status(500).json({
         status: {
           code: 500,
@@ -144,7 +144,7 @@ const patchCondition = async (req, res, next) => {
       })
     } else {
       const add = {
-        request:{
+        request: {
           type: 'GET',
           url: endpoint + id
         }
@@ -155,14 +155,14 @@ const patchCondition = async (req, res, next) => {
           message: 'Successfully patched Condition document'
         },
         ...result,
-        ...{_id: id},
+        ...{ _id: id },
         ...add
       })
     }
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error patching Condition document'
       }
@@ -184,7 +184,7 @@ const deleteCondition = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error deleting Condition document'
       }
@@ -206,7 +206,7 @@ const deleteAllConditions = async (req, res, next) => {
   }
   catch (err) {
     res.status(400).json({
-      status:{
+      status: {
         code: 400,
         message: 'Error deleting all Condition documents'
       }

@@ -1,5 +1,5 @@
 const Server = require('./api/server');
-const mongoose = require ('mongoose')
+const mongoose = require('mongoose')
 require('dotenv').config()
 const config = require('./config/main')
 const mongoConfig = require('./config/mongo')
@@ -9,7 +9,7 @@ new Server(config, chalk).start();
 
 mongoose.connect(
     config.dbpath,
-    { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false},
+    { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false },
 );
 
 mongoose.connection.once('open', () => {

@@ -27,7 +27,7 @@ const upsertFbUser = async (token, tokenSecret, profile, next) => {
       'facebookProvider.id': profile.id
     }).exec()
 
-    if(!user) {
+    if (!user) {
       const newUser = new User({
         _id: new mongoose.Types.ObjectId(),
         firstName: profile.name.givenName,
@@ -55,7 +55,7 @@ module.exports = () => {
 
   passport.use(new JwtStrategy(opts, function (payload, userInfo, done) {
     User.findById(userInfo.user._id, (err, user) => {
-      if(err) {
+      if (err) {
         done(err, false)
       }
       else if (user) {
@@ -67,15 +67,15 @@ module.exports = () => {
   }))
 
   passport.use(new FacebookTokenStrategy(facebookOpts, function (accessToken, refreshToken, profile, done) {
-      upsertFbUser(accessToken, refreshToken, profile, (err, user) => {
-        if(err) {
-          done(err, false)
-        }
-        else if (user) {
-          done(null, user)
-        } else {
-          done(null, false)
-        }
-      })
+    upsertFbUser(accessToken, refreshToken, profile, (err, user) => {
+      if (err) {
+        done(err, false)
+      }
+      else if (user) {
+        done(null, user)
+      } else {
+        done(null, false)
+      }
+    })
   }))
 }
