@@ -11,7 +11,6 @@ const returnError = (err, res) => {
 
 const createEncounter = async (req, res, next) => {
   try {
-    console.log('createEncounter in API', req.body)
     const encounter = new Encounter({
       _id: new mongoose.Types.ObjectId(),
       name: req.body.name,

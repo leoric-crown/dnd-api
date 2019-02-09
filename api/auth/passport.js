@@ -21,8 +21,6 @@ const facebookOpts = {
 
 const upsertFbUser = async (token, tokenSecret, profile, next) => {
   try {
-    console.log('in upsertFbUser');
-    console.log(profile)
     const user = await User.findOne({
       'facebookProvider.id': profile.id
     }).exec()

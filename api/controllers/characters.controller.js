@@ -13,17 +13,13 @@ const returnError = (err, res) => {
 }
 
 const fetchImage = async (url) => {
-  console.log(url.substring(url.lastIndexOf('.')))
-  console.log('fetchImage' + url)
   const options = {
     url,
     dest: './uploads/' + new Date().getTime() + url.substring(url.lastIndexOf('/') + 1)
   }
   try {
     const result = await download.image(options)
-    console.log(result)
     const path = result.filename.substring(result.filename.indexOf('/') + 1)
-    console.log(path)
     return path
   }
   catch (err) {
@@ -32,7 +28,6 @@ const fetchImage = async (url) => {
 }
 
 const createCharacter = async (req, res, next) => {
-  console.log(req.body)
   try {
     const character = new Character({
       _id: new mongoose.Types.ObjectId(),

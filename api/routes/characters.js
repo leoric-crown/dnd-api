@@ -36,10 +36,7 @@ router.get('/user', authenticate, CharactersController.getUserCharacters)
 
 router.get('/:characterId', CharactersController.getCharacter)
 
-router.post('/', (req, res, next) => {
-  console.log(req.body)
-  next()
-}, upload.single('characterPic'), CharactersController.createCharacter)
+router.post('/', upload.single('characterPic'), CharactersController.createCharacter)
 
 router.post('/:characterId/pic', upload.single('characterPic'), CharactersController.updateCharacterImage)
 
