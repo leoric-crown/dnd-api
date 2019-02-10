@@ -8,6 +8,8 @@ router.get('/', EncountersController.getAllEncounters)
 
 router.get('/:encounterId', EncountersController.getEncounter)
 
+router.post('/:encounterId/setActive', EncountersController.setActiveEncounter)
+
 router.post('/', EncountersController.createEncounter)
 
 router.patch('/:encounterId', EncountersController.patchEncounter)

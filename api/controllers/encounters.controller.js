@@ -90,6 +90,37 @@ const getAllEncounters = async (req, res, next) => {
   }
 }
 
+const setActiveEncounter = async (req, res, next) => {
+  try {
+    const id = req.params.encounterId
+    const existingActive = await Encounter.findOne({ status: 'Active' })
+    const activeEncounter = await Encounter.findByIdAndUpdate(id, { $set: { status: 'Active' } })
+    activeEncounter.status = 'Active'
+    if (existingActive && existingActive._id !== id) {
+      await Encounter.findByIdAndUpdate(existingActive._id, { $set: { status: 'Concluded' } })
+    }
+    activeEncounter._doc.request = {
+      type: 'GET',
+      url: endpoint + activeEncounter._id
+    }
+    res.json({
+      status: {
+        code: 200,
+        message: 'Successfully updated/set Active Encounter'
+      },
+      activeEncounter
+    })
+} catch (err) {
+  console.log(err)
+  res.status(400).json({
+    status: {
+      code: 400,
+      message: 'Error updating/setting Active Encounter'
+    }
+  })
+}
+}
+
 const getEncounter = async (req, res, next) => {
   const id = req.params.encounterId
   try {
@@ -215,6 +246,7 @@ const deleteAllEncounters = async (req, res, next) => {
 module.exports = {
   createEncounter,
   getAllEncounters,
+  setActiveEncounter,
   getEncounter,
   patchEncounter,
   deleteEncounter,
