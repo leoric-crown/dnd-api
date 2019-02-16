@@ -1,3 +1,4 @@
+const fetchConditions = require('./config/mongo')
 const Server = require('./api/server');
 const mongoose = require('mongoose')
 require('dotenv').config()
@@ -13,6 +14,7 @@ mongoose.connect(
 );
 
 mongoose.connection.once('open', () => {
+    fetchConditions()
     console.log(chalk.bold.magenta(`Succesfully Connected to MongoDB at ${config.dbpath}`))
 });
 
