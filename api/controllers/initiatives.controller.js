@@ -68,6 +68,7 @@ const createInitiative = async (req, res, next) => {
       },
       createdInitiative: {
         ...initiative._doc,
+        character,
         ...add
       }
     })
