@@ -80,8 +80,9 @@ const createInitiative = async (req, res, next) => {
     res.status(201).json({
       status: {
         code: 201,
-        message: 'Successfully created new Initiative document'
+        message: 'Successfully created new Initiative document(s)'
       },
+      count: createdInitiatives.length,
       createdInitiatives: createdInitiatives.map(i => {
         return {
           ...i.initiative,
