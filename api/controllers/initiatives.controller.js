@@ -53,7 +53,8 @@ const createInitiative = async (req, res, next) => {
 
       const initiative = {
         _id: newId,
-        encounter: req.body.encounter,
+        active: false,
+        encounter: req.body.encounter._id ? req.body.encounter._id : req.body.encounter,
         character: req.body.character,
         initiative: req.body.initiative,
         active: req.body.active,
