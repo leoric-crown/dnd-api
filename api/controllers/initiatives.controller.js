@@ -6,6 +6,8 @@ const mongoose = require('mongoose')
 const Initiative = require('../models/initiative.model')
 const Character = require('../models/character.model')
 
+const chalk = require('chalk')
+
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -21,57 +23,78 @@ const createInitiative = async (req, res, next) => {
     const character = await Character.findById(req.body.character)
       .select('-__v')
       .exec()
-    var characterAdd = {}
-    const newId = new mongoose.Types.ObjectId()
-    if (!character.player) {
-      characterAdd = {
-        hitpoints: character.maxhitpoints,
-        request: {
-          type: 'GET',
-          url: endpoint + newId + '/character'
+
+    const createdInitiatives = []
+    const quantity = req.body.quantity > 0 ? req.body.quantity : 1
+    for (var k = 0; k < quantity; k++) {
+      var characterAdd = {}
+      const newId = new mongoose.Types.ObjectId()
+      if (!character.player) {
+        characterAdd = {
+          hitpoints: character.maxhitpoints,
+          request: {
+            type: 'GET',
+            url: endpoint + newId + '/character'
+          }
+        }
+      } else {
+        characterAdd = {
+          request: {
+            type: 'GET',
+            url: characterEndpoint + req.body.character
+          }
         }
       }
-    } else {
-      characterAdd = {
+
+      const characterStamp = {
+        ...character._doc,
+        ...characterAdd
+      }
+
+      const initiative = {
+        _id: newId,
+        encounter: req.body.encounter,
+        character: req.body.character,
+        initiative: req.body.initiative,
+        active: req.body.active,
+        characterStamp: characterStamp
+      }
+      // const result = await initiative.save()
+
+      const add = {
         request: {
           type: 'GET',
-          url: characterEndpoint + req.body.character
+          url: endpoint + initiative._id
         }
       }
-    }
-    const characterStamp = {
-      ...character._doc,
-      ...characterAdd
+      createdInitiatives.push({
+        initiative,
+        character,
+        add
+      })
     }
 
-    const initiative = new Initiative({
-      _id: newId,
-      encounter: req.body.encounter,
-      character: req.body.character,
-      initiative: req.body.initiative,
-      active: req.body.active,
-      characterStamp: characterStamp
-    })
-    const result = await initiative.save()
-
-    const add = {
-      request: {
-        type: 'GET',
-        url: endpoint + initiative._id
-      }
-    }
+    console.log(chalk.bold.magenta('LOOK AT ME'), createdInitiatives)
+    Initiative.create(createdInitiatives.map(i => i.initiative))
 
     res.status(201).json({
       status: {
         code: 201,
         message: 'Successfully created new Initiative document'
       },
-      createdInitiative: {
-        ...initiative._doc,
-        character,
-        ...add
-      }
+      createdInitiatives: createdInitiatives.map(i => {
+        return {
+          ...i.initiative,
+          character,
+          ...i.add
+        }
+      })
     })
+    // createdInitiative: {
+    //   ...initiative._doc,
+    //   character,
+    //   ...add
+    // }
   }
   catch (err) {
     res.status(400).json({
