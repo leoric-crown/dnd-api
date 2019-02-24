@@ -408,6 +408,10 @@ const patchCharacter = async (req, res, next) => {
           }
         }
         res.status(200).json({
+          status: {
+            code: 200,
+            message: 'Successfully patched Initiative Character stamp'
+          },
           ...result,
           ...{ _id: id },
           ...add

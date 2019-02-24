@@ -41,7 +41,7 @@ router.post('/', upload.single('characterPic'), CharactersController.createChara
 router.post('/:characterId/pic', upload.single('characterPic'), CharactersController.updateCharacterImage)
 
 router.patch('/:characterId', (req, res, next) => {
-  console.log(req)
+  console.log(req.body)
   next()
 }, CharactersController.patchCharacter)
 
