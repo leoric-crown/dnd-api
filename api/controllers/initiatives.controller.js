@@ -41,7 +41,7 @@ const createInitiative = async (req, res, next) => {
         characterAdd = {
           request: {
             type: 'GET',
-            url: characterEndpoint + req.body.character
+            url: `${characterEndpoint}${character.id}`
           }
         }
       }

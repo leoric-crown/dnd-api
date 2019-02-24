@@ -40,7 +40,10 @@ router.post('/', upload.single('characterPic'), CharactersController.createChara
 
 router.post('/:characterId/pic', upload.single('characterPic'), CharactersController.updateCharacterImage)
 
-router.patch('/:characterId', CharactersController.patchCharacter)
+router.patch('/:characterId', (req, res, next) => {
+  console.log(req)
+  next()
+}, CharactersController.patchCharacter)
 
 router.delete('/:characterId', CharactersController.deleteCharacter)
 
