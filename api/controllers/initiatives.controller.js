@@ -48,6 +48,7 @@ const createInitiative = async (req, res, next) => {
 
       const characterStamp = {
         ...character._doc,
+        name: character.player ? character.name : `${character.name} ${k+1}`,
         ...characterAdd
       }
 
@@ -60,7 +61,6 @@ const createInitiative = async (req, res, next) => {
         active: req.body.active,
         characterStamp: characterStamp
       }
-      // const result = await initiative.save()
 
       const add = {
         request: {
