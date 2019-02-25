@@ -26,6 +26,7 @@ const createInitiative = async (req, res, next) => {
 
     const createdInitiatives = []
     const quantity = req.body.quantity > 0 ? req.body.quantity : 1
+    const prefix = req.body.prefix ? req.body.prefix : ''
     for (var k = 0; k < quantity; k++) {
       var characterAdd = {}
       const newId = new mongoose.Types.ObjectId()
@@ -48,7 +49,7 @@ const createInitiative = async (req, res, next) => {
 
       const characterStamp = {
         ...character._doc,
-        name: character.player ? character.name : `${character.name} ${k+1}`,
+        name: `${prefix} `+ (character.player ? character.name : `${character.name} ${k+1}`),
         ...characterAdd
       }
 
