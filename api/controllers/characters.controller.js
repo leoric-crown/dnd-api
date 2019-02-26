@@ -226,7 +226,6 @@ const updateCharacterImage = async (req, res, next) => {
         }
       })
     } else {
-      console.log(req)
       const oldPic = character.picUrl
       if (!req.file) {
         if (req.body.characterPic && validator.isURL(req.body.characterPic)) {

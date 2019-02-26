@@ -76,7 +76,6 @@ const createInitiative = async (req, res, next) => {
       })
     }
 
-    console.log(chalk.bold.magenta('LOOK AT ME'), createdInitiatives)
     Initiative.insertMany(createdInitiatives.map(i => i.initiative))
 
     res.status(201).json({

@@ -16,7 +16,6 @@ router.post('/login', UserController.userLogin)
 router.post('/auth/facebook', authenticateFb, tokens.sendToken)
 
 router.post('/verifyToken', authenticate, (req, res) => {
-  console.log(req.user)
   const { password, _id, _v, ...user } = req.user._doc
   user.userId = _id
   res.status(200).json({
