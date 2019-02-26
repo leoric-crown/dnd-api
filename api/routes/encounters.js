@@ -4,6 +4,8 @@ const EncountersController = require('../controllers/encounters.controller')
 const passport = require('passport')
 const authenticate = passport.authenticate('jwt', { session: false })
 
+router.use(authenticate)
+
 router.get('/', EncountersController.getAllEncounters)
 
 router.get('/:encounterId', EncountersController.getEncounter)

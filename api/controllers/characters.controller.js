@@ -76,58 +76,22 @@ const createCharacter = async (req, res, next) => {
 }
 
 const getAllCharacters = async (req, res, next) => {
-  try {
     const docs = await Character.find()
       .select('-__v')
       .exec()
-    const response = {
-      count: docs.length,
-      characters: docs.map(doc => {
-        const add = {
-          request: {
-            type: 'GET',
-            url: endpoint + doc._id
-          }
-        }
-        return {
-          ...doc._doc,
-          ...add
-        }
-      })
-    }
-    if (docs) {
-      res.status(200).json({
-        status: {
-          code: 200,
-          message: 'Successfully fetched all Character documents'
-        },
-        ...response
-      })
-    } else {
-      res.status(404).json({
-        status: {
-          code: 404,
-          message: 'No documents in Character collection'
-        }
-      })
-    }
-  }
-  catch (err) {
-    res.status(400).json({
-      status: {
-        code: 400,
-        message: 'Error getting Character documents'
-      }
-    })
-  }
+    return charactersResponse(res, docs)
 }
 
 const getUserCharacters = async (req, res, next) => {
+  const userId = req.user._id
+  const docs = await Character.find({ user: userId })
+    .select('-__v')
+    .exec()
+  return charactersResponse(res, docs, true)
+}
+
+const charactersResponse = async (res, docs, userFilter = false) => {
   try {
-    const userId = req.user._id
-    const docs = await Character.find({ user: userId })
-      .select('-__v')
-      .exec()
     const response = {
       count: docs.length,
       characters: docs.map(doc => {
@@ -147,7 +111,7 @@ const getUserCharacters = async (req, res, next) => {
       res.status(200).json({
         status: {
           code: 200,
-          message: "Successfully fetched all User's Character documents"
+          message: `Successfully fetched all ${userFilter ? "User's" : ''} Character documents`
         },
         ...response
       })
@@ -155,18 +119,17 @@ const getUserCharacters = async (req, res, next) => {
       res.status(404).json({
         status: {
           code: 404,
-          message: "No documents for User ID in Character collection"
+          message: `No documents ${userFilter ? 'for User' : ''} in Character collection`
         }
       })
     }
   }
   catch (err) {
-
     console.log(err)
     res.status(400).json({
       status: {
         code: 400,
-        message: "Error getting User's Character documents"
+        message: `Error getting ${userFilter ? 'User' : ''} Character documents`
       }
     })
   }

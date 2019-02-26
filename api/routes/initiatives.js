@@ -1,6 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const InitiativesController = require('../controllers/initiatives.controller')
+const passport = require('passport')
+const authenticate = passport.authenticate('jwt', { session: false })
+
+router.use(authenticate)
 
 router.post('/', InitiativesController.createInitiative)
 

@@ -1,7 +1,10 @@
 const express = require('express')
 const router = express.Router()
-
 const ConditionsController = require('../controllers/conditions.controller')
+const passport = require('passport')
+const authenticate = passport.authenticate('jwt', { session: false })
+
+router.use(authenticate)
 
 router.post('/', ConditionsController.createCondition)
 

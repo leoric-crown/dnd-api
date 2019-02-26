@@ -30,9 +30,11 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+router.use(authenticate)
+
 router.get('/', CharactersController.getAllCharacters)
 
-router.get('/user', authenticate, CharactersController.getUserCharacters)
+router.get('/user', CharactersController.getUserCharacters)
 
 router.get('/:characterId', CharactersController.getCharacter)
 
