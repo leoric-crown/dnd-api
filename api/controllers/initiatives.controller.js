@@ -77,7 +77,7 @@ const createInitiative = async (req, res, next) => {
     }
 
     console.log(chalk.bold.magenta('LOOK AT ME'), createdInitiatives)
-    Initiative.create(createdInitiatives.map(i => i.initiative))
+    Initiative.insertMany(createdInitiatives.map(i => i.initiative))
 
     res.status(201).json({
       status: {
@@ -93,11 +93,6 @@ const createInitiative = async (req, res, next) => {
         }
       })
     })
-    // createdInitiative: {
-    //   ...initiative._doc,
-    //   character,
-    //   ...add
-    // }
   }
   catch (err) {
     res.status(400).json({
@@ -318,12 +313,20 @@ const setEncounterNextTurn = async (req, res, next) => {
         { $set: { active: true } })
       newActiveInitiative.active = true
 
+      const prevId = activeInitiative._id
+      const add = {}
+      if (req.body.deletePrevious){
+        await Initiative.deleteOne({ _id: prevId })
+        add.deleted = prevId
+      }
+    
       res.status(200).json({
         status: {
           code: 200,
           message: 'Successfully updated Active Initiative'
         },
-        activeInitiative: newActiveInitiative
+        activeInitiative: encounterInitiatives.length === 1 ? activeInitiative :newActiveInitiative,
+        ...add
       })
     }
 
