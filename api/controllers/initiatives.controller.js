@@ -76,7 +76,7 @@ const createInitiative = async (req, res, next) => {
       })
     }
 
-    Initiative.insertMany(createdInitiatives.map(i => i.initiative))
+    const result = await Initiative.insertMany(createdInitiatives.map(i => i.initiative))
 
     res.status(201).json({
       status: {

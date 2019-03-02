@@ -1,18 +1,15 @@
 require('dotenv').config()
 const cors = require('cors')
 const express = require('express')
-const app = express()
-const server = require('http').createServer(app)
+const http = require('http')
 const bodyParser = require('body-parser')
-const mongoose = require('mongoose')
 const morganBody = require('morgan-body')
-//const morgan = require('morgan')
-//app.use(morgan('dev'))
 const encounterRoutes = require('./routes/encounters')
 const characterRoutes = require('./routes/characters')
 const initiativeRoutes = require('./routes/initiatives')
 const conditionRoutes = require('./routes/conditions')
 const userRoutes = require('./routes/users')
+// const ws = require('express-ws')
 
 module.exports = class ServerApp {
   /**
@@ -27,7 +24,14 @@ module.exports = class ServerApp {
 
   start() {
     this.app = express();
-    this.app.use(cors());
+    const server = http.createServer(this.app)
+    this.app.io = require('socket.io').listen(server)
+    const corsOptions = {
+      credentials: true,
+      origin: (origin, callback) => callback(null, true)
+    }
+    this.app.use(cors(corsOptions));
+
     this.app.use(bodyParser.json());
     // TODO: Use NODE_ENV to choose to use morganBody module
     morganBody(this.app, { logResponseBody: true })
@@ -55,11 +59,15 @@ module.exports = class ServerApp {
       })
     })
 
+    return server.listen(this.config.port, () => {
+      
+      this.app.io.on('connection', (socket) => {
+        console.log(this.chalk.bold.magenta('WebSocket connection from Client: ' + socket.id))
+      })
 
-    return this.app.listen(this.config.port, () => {
-      console.log(this.chalk.bold.green(`
-              Started DnD Express server listening to port ${this.config.port}
-          `.trim()));
-    });
+      console.log(this.chalk.bold.green(
+        `Started DnD Express server listening to port ${this.config.port}`.trim()
+      ))
+    })
   }
 }

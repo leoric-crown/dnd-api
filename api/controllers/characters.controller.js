@@ -53,7 +53,7 @@ const createCharacter = async (req, res, next) => {
         url: endpoint + character._id
       }
     }
-    res.status(201).json({
+    const responseBody = {
       status: {
         code: 201,
         message: 'Successfully created new Character document'
@@ -62,7 +62,13 @@ const createCharacter = async (req, res, next) => {
         ...character._doc,
         ...add
       }
+    }
+    
+    req.app.io.emit('CREATE_CHARACTER', {
+      character: responseBody.createdCharacter,
+      appId: req.body.appId
     })
+    res.status(201).json(responseBody)
   }
   catch (err) {
     console.log(err)
