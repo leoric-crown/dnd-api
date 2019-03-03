@@ -82,6 +82,82 @@ const createCharacter = async (req, res, next) => {
   }
 }
 
+const patchCharacter = async (req, res, next) => {
+  try {
+    const id = req.params.characterId
+    const updateOps = {}
+    for (const ops of req.body) {
+      updateOps[ops.propName] = ops.value
+    }
+    const result = await Character.updateOne({ _id: id }, { $set: updateOps }).exec()
+    if (result.n === 0) {
+      res.status(500).json({
+        status: {
+          code: 500,
+          message: 'Patch failed: Character document not found'
+        }
+      })
+    } else {
+      const add = {
+        request: {
+          type: 'GET',
+          url: endpoint + id
+        }
+      }
+
+      req.app.io.emit(wsTypes.UPDATE_CHARACTER, {
+        id,
+        appId: req.headers.appid,
+        payload: req.body
+      })
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully patched Character document'
+        },
+        ...result,
+        ...{ _id: id },
+        ...add
+      })
+    }
+  }
+  catch (err) {
+    console.log(err)
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: 'Error patching Character document'
+      }
+    })
+  }
+}
+
+const deleteCharacter = async (req, res, next) => {
+  try {
+    const id = req.params.characterId
+    const result = await Character.deleteOne({ _id: id }).exec()
+    req.app.io.emit(wsTypes.REMOVE_CHARACTER, {
+      id,
+      appId: req.headers.appid
+    })
+    res.status(200).json({
+      status: {
+        code: 200,
+        message: 'Successfully deleted Character document'
+      },
+      ...result
+    })
+  }
+  catch (err) {
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: 'Error deleting Character document'
+      }
+    })
+  }
+}
+
 const getAllCharacters = async (req, res, next) => {
     const docs = await Character.find()
       .select('-__v')
@@ -175,56 +251,6 @@ const getCharacter = async (req, res, next) => {
   }
 }
 
-const patchCharacter = async (req, res, next) => {
-  try {
-    const id = req.params.characterId
-    const updateOps = {}
-    for (const ops of req.body) {
-      updateOps[ops.propName] = ops.value
-    }
-    const result = await Character.updateOne({ _id: id }, { $set: updateOps }).exec()
-    if (result.n === 0) {
-      res.status(500).json({
-        status: {
-          code: 500,
-          message: 'Patch failed: Character document not found'
-        }
-      })
-    } else {
-      const add = {
-        request: {
-          type: 'GET',
-          url: endpoint + id
-        }
-      }
-
-      req.app.io.emit(wsTypes.UPDATE_CHARACTER, {
-        id,
-        appId: req.headers.appid,
-        payload: req.body
-      })
-      res.status(200).json({
-        status: {
-          code: 200,
-          message: 'Successfully patched Character document'
-        },
-        ...result,
-        ...{ _id: id },
-        ...add
-      })
-    }
-  }
-  catch (err) {
-    console.log(err)
-    res.status(400).json({
-      status: {
-        code: 400,
-        message: 'Error patching Character document'
-      }
-    })
-  }
-}
-
 const updateCharacterImage = async (req, res, next) => {
   try {
     const id = req.params.characterId
@@ -279,32 +305,6 @@ const updateCharacterImage = async (req, res, next) => {
       status: {
         code: 400,
         message: 'Error updating Character Image'
-      }
-    })
-  }
-}
-
-const deleteCharacter = async (req, res, next) => {
-  try {
-    const id = req.params.characterId
-    const result = await Character.deleteOne({ _id: id }).exec()
-    req.app.io.emit(wsTypes.REMOVE_CHARACTER, {
-      id,
-      appId: req.headers.appid
-    })
-    res.status(200).json({
-      status: {
-        code: 200,
-        message: 'Successfully deleted Character document'
-      },
-      ...result
-    })
-  }
-  catch (err) {
-    res.status(400).json({
-      status: {
-        code: 400,
-        message: 'Error deleting Character document'
       }
     })
   }

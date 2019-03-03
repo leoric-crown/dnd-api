@@ -52,121 +52,6 @@ const createEncounter = async (req, res, next) => {
   }
 }
 
-const getAllEncounters = async (req, res, next) => {
-  try {
-    const docs = await Encounter.find().select('-__v').exec()
-    const response = {
-      count: docs.length,
-      encounters: docs.map(doc => {
-        const add = {
-          request: {
-            type: 'GET',
-            url: endpoint + doc._id
-          }
-        }
-        return {
-          ...doc._doc,
-          ...add
-        }
-      })
-    }
-    if (docs) {
-      res.status(200).json({
-        status: {
-          code: 200,
-          message: 'Successfully fetched all Encounter documents'
-        },
-        ...response
-      })
-    } else {
-      res.status(404).json({
-        status: {
-          code: 404,
-          message: 'No documents in Encounter collection'
-        }
-      })
-    }
-  }
-  catch (err) {
-    res.status(400).json({
-      status: {
-        code: 400,
-        message: 'Error getting Encounter documents'
-      }
-    })
-  }
-}
-
-const setActiveEncounter = async (req, res, next) => {
-  try {
-    const id = req.params.encounterId
-    const existingActive = await Encounter.findOne({ status: 'Active' })
-    const activeEncounter = await Encounter.findByIdAndUpdate(id, { $set: { status: 'Active' } })
-    activeEncounter.status = 'Active'
-    if (existingActive && existingActive._id !== id) {
-      await Encounter.findByIdAndUpdate(existingActive._id, { $set: { status: 'Concluded' } })
-      req.app.io.emit(wsTypes.CLEAR_ACTIVE_ENCOUNTER, "Please clear active encounter")
-    }
-    activeEncounter._doc.request = {
-      type: 'GET',
-      url: endpoint + activeEncounter._id
-    }
-    const responseBody = {
-      status: {
-        code: 200,
-        message: 'Successfully updated/set Active Encounter'
-      },
-      activeEncounter
-    }
-
-    req.app.io.emit(wsTypes.SET_ACTIVE_ENCOUNTER, {
-      active: responseBody.activeEncounter,
-      prevActiveId: req.body.prevActiveId,
-      appId: req.headers.appid
-    })
-    res.json(responseBody)
-} catch (err) {
-  console.log(err)
-  res.status(400).json({
-    status: {
-      code: 400,
-      message: 'Error updating/setting Active Encounter'
-    }
-  })
-}
-}
-
-const getEncounter = async (req, res, next) => {
-  const id = req.params.encounterId
-  try {
-    const encounter = await Encounter.findById(id).select('-__v').exec()
-    if (encounter) {
-      res.status(200).json({
-        status: {
-          code: 200,
-          message: 'Successfully fetched Encounter document'
-        },
-        encounter
-      })
-    } else {
-      res.status(404).json({
-        status: {
-          code: 404,
-          message: 'No Encounter document found for provided ID'
-        }
-      })
-    }
-  }
-  catch (err) {
-    res.status(400).json({
-      status: {
-        code: 400,
-        message: 'Error getting Encounter document'
-      }
-    })
-  }
-}
-
 const patchEncounter = async (req, res, next) => {
   try {
     const id = req.params.encounterId
@@ -221,6 +106,45 @@ const patchEncounter = async (req, res, next) => {
   }
 }
 
+const setActiveEncounter = async (req, res, next) => {
+  try {
+    const id = req.params.encounterId
+    const existingActive = await Encounter.findOne({ status: 'Active' })
+    const activeEncounter = await Encounter.findByIdAndUpdate(id, { $set: { status: 'Active' } })
+    activeEncounter.status = 'Active'
+    if (existingActive && existingActive._id !== id) {
+      await Encounter.findByIdAndUpdate(existingActive._id, { $set: { status: 'Concluded' } })
+      req.app.io.emit(wsTypes.CLEAR_ACTIVE_ENCOUNTER, "Please clear active encounter")
+    }
+    activeEncounter._doc.request = {
+      type: 'GET',
+      url: endpoint + activeEncounter._id
+    }
+    const responseBody = {
+      status: {
+        code: 200,
+        message: 'Successfully updated/set Active Encounter'
+      },
+      activeEncounter
+    }
+
+    req.app.io.emit(wsTypes.SET_ACTIVE_ENCOUNTER, {
+      active: responseBody.activeEncounter,
+      prevActiveId: req.body.prevActiveId,
+      appId: req.headers.appid
+    })
+    res.json(responseBody)
+  } catch (err) {
+    console.log(err)
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: 'Error updating/setting Active Encounter'
+      }
+    })
+  }
+}
+
 const deleteEncounter = async (req, res, next) => {
   try {
     const id = req.params.encounterId
@@ -242,6 +166,82 @@ const deleteEncounter = async (req, res, next) => {
       status: {
         code: 400,
         message: 'Error deleting Encounter document'
+      }
+    })
+  }
+}
+
+const getAllEncounters = async (req, res, next) => {
+  try {
+    const docs = await Encounter.find().select('-__v').exec()
+    const response = {
+      count: docs.length,
+      encounters: docs.map(doc => {
+        const add = {
+          request: {
+            type: 'GET',
+            url: endpoint + doc._id
+          }
+        }
+        return {
+          ...doc._doc,
+          ...add
+        }
+      })
+    }
+    if (docs) {
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully fetched all Encounter documents'
+        },
+        ...response
+      })
+    } else {
+      res.status(404).json({
+        status: {
+          code: 404,
+          message: 'No documents in Encounter collection'
+        }
+      })
+    }
+  }
+  catch (err) {
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: 'Error getting Encounter documents'
+      }
+    })
+  }
+}
+
+const getEncounter = async (req, res, next) => {
+  const id = req.params.encounterId
+  try {
+    const encounter = await Encounter.findById(id).select('-__v').exec()
+    if (encounter) {
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully fetched Encounter document'
+        },
+        encounter
+      })
+    } else {
+      res.status(404).json({
+        status: {
+          code: 404,
+          message: 'No Encounter document found for provided ID'
+        }
+      })
+    }
+  }
+  catch (err) {
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: 'Error getting Encounter document'
       }
     })
   }

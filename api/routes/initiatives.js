@@ -18,7 +18,7 @@ router.get('/:encounterId', InitiativesController.getEncounterInitiative)
 
 router.patch('/:initiativeId', InitiativesController.patchInitiative)
 
-router.patch('/:initiativeId/character', InitiativesController.patchCharacter)
+router.patch('/:initiativeId/character', InitiativesController.patchCharacterStamp)
 
 router.delete('/:initiativeId', InitiativesController.deleteInitiative)
 

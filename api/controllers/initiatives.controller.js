@@ -5,9 +5,7 @@ const characterEndpoint = `http://${config.host}:${config.port}/characters/`
 const mongoose = require('mongoose')
 const Initiative = require('../models/initiative.model')
 const Character = require('../models/character.model')
-
-const chalk = require('chalk')
-
+const wsTypes = require('../socket/wsTypes')
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -78,7 +76,7 @@ const createInitiative = async (req, res, next) => {
 
     const result = await Initiative.insertMany(createdInitiatives.map(i => i.initiative))
 
-    res.status(201).json({
+    const responseBody = {
       status: {
         code: 201,
         message: 'Successfully created new Initiative document(s)'
@@ -91,7 +89,12 @@ const createInitiative = async (req, res, next) => {
           ...i.add
         }
       })
+    }
+    req.app.io.emit(wsTypes.CREATE_INITIATIVE, {
+      initiatives: responseBody.createdInitiatives,
+      appId: req.headers.appid
     })
+    res.status(201).json(responseBody)
   }
   catch (err) {
     res.status(400).json({
@@ -102,6 +105,206 @@ const createInitiative = async (req, res, next) => {
     })
   }
 }
+
+const patchInitiative = async (req, res, next) => {
+  try {
+    const id = req.params.initiativeId
+    const updateOps = {}
+    for (const ops of req.body) {
+      updateOps[ops.propName] = ops.value
+    }
+    const result = await Initiative.updateOne({ _id: id }, { $set: updateOps }).exec()
+    if (result.n === 0) {
+      res.status(500).json({
+        status: {
+          code: 500,
+          message: 'Patch failed: Initiative document not found'
+        }
+      })
+    } else {
+      const add = {
+        request: {
+          type: 'GET',
+          url: endpoint + id
+        }
+      }
+      req.app.io.emit(wsTypes.UPDATE_INITIATIVE, {
+        id,
+        appId: req.headers.appid,
+        payload: req.body
+      })
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully patched Initiative document'
+        },
+        ...result,
+        ...{ _id: id },
+        ...add
+      })
+    }
+  }
+  catch (err) {
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: 'Error patching Initiative document'
+      }
+    })
+  }
+}
+
+const deleteInitiative = async (req, res, next) => {
+  try {
+    const id = req.params.initiativeId
+    const result = await Initiative.deleteOne({ _id: id }).exec()
+    req.app.io.emit(wsTypes.REMOVE_INITIATIVE, {
+      id,
+      appId: req.headers.appid
+    })
+    res.status(200).json({
+      status: {
+        code: 200,
+        message: 'Successfully deleted Initiative document'
+      },
+      ...result
+    })
+  }
+  catch (err) {
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: 'Error deleting Initiative document'
+      }
+    })
+  }
+}
+
+const setEncounterNextTurn = async (req, res, next) => {
+  try {
+    const encounterId = req.params.encounterId
+    const encounterInitiatives = await Initiative.find({ encounter: encounterId })
+      .select('-__v -encounter')
+      .sort({ initiative: 'desc' })
+      .exec()
+
+    const activeInitiative = encounterInitiatives.find(i => i.active === true)
+    if (!activeInitiative) {
+      const update = await Initiative.findByIdAndUpdate(encounterInitiatives[0]._id, { $set: { active: true } })
+      update.active = true
+      req.app.io.emit(wsTypes.SET_NEXT_TURN, {
+        prevActive: null,
+        newActive: update,
+        appId: req.headers.appid
+      })
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully set initial Active Initiative'
+        },
+        activeInitiative: update
+      })
+    }
+    else {
+      const update = await Initiative.findByIdAndUpdate(activeInitiative._id, { $set: { active: false } })
+      update.active = false
+
+      index = (encounterInitiatives.indexOf(activeInitiative) + 1) % encounterInitiatives.length
+      const newActiveInitiative = await Initiative.findByIdAndUpdate(encounterInitiatives[index]._id,
+        { $set: { active: true } })
+      newActiveInitiative.active = true
+
+      const prevId = activeInitiative._id
+      const add = {}
+      if (req.body.deletePrevious){
+        await Initiative.deleteOne({ _id: prevId })
+        add.deleted = prevId
+      }
+
+      const responseBody = {
+        status: {
+          code: 200,
+          message: 'Successfully updated Active Initiative'
+        },
+        activeInitiative: encounterInitiatives.length === 1 ? activeInitiative :newActiveInitiative,
+        ...add
+      }
+      const wsMessage = {
+        prevActive: activeInitiative._doc,
+        newActive: responseBody.activeInitiative,
+        appId: req.headers.appid,
+        ...add
+      } 
+      req.app.io.emit(wsTypes.SET_NEXT_TURN, wsMessage)
+      res.status(200).json(responseBody)
+    }
+
+  }
+  catch (err) {
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: "Error setting Encounter's active turn"
+      }
+    })
+  }
+}
+
+const patchCharacterStamp = async (req, res, next) => {
+  try {
+    const id = req.params.initiativeId
+    var initiative = await Initiative.findById(id).exec()
+    if (initiative.n === 0) {
+      res.status(500).json({
+        error: 'Patch failed: Initiative document not found.'
+      })
+    }
+    if (initiative._doc.characterStamp.player) {
+      res.status(500).json({
+        error: 'Character is Player Character, use /character endpoint instead.'
+      })
+    } else {
+      const { characterStamp } = initiative._doc
+      for (const ops of req.body) {
+        characterStamp[ops.propName] = ops.value
+      }
+
+      const result = await Initiative.updateOne({ _id: id }, { characterStamp }).exec()
+      if (result.n !== 0) {
+        const add = {
+          request: {
+            type: 'GET',
+            url: endpoint + id
+          }
+        }
+        req.app.io.emit(wsTypes.UPDATE_INITIATIVE_STAMP, {
+          id,
+          appId: req.headers.appid,
+          payload: req.body
+        })
+        res.status(200).json({
+          status: {
+            code: 200,
+            message: 'Successfully patched Initiative Character stamp'
+          },
+          ...result,
+          ...{ _id: id },
+          ...add
+        })
+      }
+    }
+  }
+  catch (err) {
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: 'Error patching Initiative document'
+      }
+    })
+  }
+}
+
+
 
 const getAllInitiatives = async (req, res, next) => {
   try {
@@ -283,178 +486,6 @@ const getEncounterInitiative = async (req, res, next) => {
   }
 }
 
-const setEncounterNextTurn = async (req, res, next) => {
-  try {
-    const encounterId = req.params.encounterId
-    const encounterInitiatives = await Initiative.find({ encounter: encounterId })
-      .select('-__v -encounter')
-      .sort({ initiative: 'desc' })
-      .exec()
-
-    const activeInitiative = encounterInitiatives.find(i => i.active === true)
-    if (!activeInitiative) {
-      const update = await Initiative.findByIdAndUpdate(encounterInitiatives[0]._id, { $set: { active: true } })
-      update.active = true
-      res.status(200).json({
-        status: {
-          code: 200,
-          message: 'Successfully set initial Active Initiative'
-        },
-        activeInitiative: update
-      })
-    }
-    else {
-      const update = await Initiative.findByIdAndUpdate(activeInitiative._id, { $set: { active: false } })
-      update.active = false
-
-      index = (encounterInitiatives.indexOf(activeInitiative) + 1) % encounterInitiatives.length
-      const newActiveInitiative = await Initiative.findByIdAndUpdate(encounterInitiatives[index]._id,
-        { $set: { active: true } })
-      newActiveInitiative.active = true
-
-      const prevId = activeInitiative._id
-      const add = {}
-      if (req.body.deletePrevious){
-        await Initiative.deleteOne({ _id: prevId })
-        add.deleted = prevId
-      }
-    
-      res.status(200).json({
-        status: {
-          code: 200,
-          message: 'Successfully updated Active Initiative'
-        },
-        activeInitiative: encounterInitiatives.length === 1 ? activeInitiative :newActiveInitiative,
-        ...add
-      })
-    }
-
-  }
-  catch (err) {
-    res.status(400).json({
-      status: {
-        code: 400,
-        message: "Error setting Encounter's active turn"
-      }
-    })
-  }
-}
-
-const patchInitiative = async (req, res, next) => {
-  try {
-    const id = req.params.initiativeId
-    const updateOps = {}
-    for (const ops of req.body) {
-      updateOps[ops.propName] = ops.value
-    }
-    const result = await Initiative.updateOne({ _id: id }, { $set: updateOps }).exec()
-    if (result.n === 0) {
-      res.status(500).json({
-        status: {
-          code: 500,
-          message: 'Patch failed: Initiative document not found'
-        }
-      })
-    } else {
-      const add = {
-        request: {
-          type: 'GET',
-          url: endpoint + id
-        }
-      }
-      res.status(200).json({
-        status: {
-          code: 200,
-          message: 'Successfully patched Initiative document'
-        },
-        ...result,
-        ...{ _id: id },
-        ...add
-      })
-    }
-  }
-  catch (err) {
-    res.status(400).json({
-      status: {
-        code: 400,
-        message: 'Error patching Initiative document'
-      }
-    })
-  }
-}
-
-const patchCharacter = async (req, res, next) => {
-  try {
-    const id = req.params.initiativeId
-    var initiative = await Initiative.findById(id).exec()
-    if (initiative.n === 0) {
-      res.status(500).json({
-        error: 'Patch failed: Initiative document not found.'
-      })
-    }
-    if (initiative._doc.characterStamp.player) {
-      res.status(500).json({
-        error: 'Character is Player Character, use /character endpoint instead.'
-      })
-    } else {
-      const { characterStamp } = initiative._doc
-      for (const ops of req.body) {
-        characterStamp[ops.propName] = ops.value
-      }
-
-      const result = await Initiative.updateOne({ _id: id }, { characterStamp }).exec()
-      if (result.n !== 0) {
-        const add = {
-          request: {
-            type: 'GET',
-            url: endpoint + id
-          }
-        }
-        res.status(200).json({
-          status: {
-            code: 200,
-            message: 'Successfully patched Initiative Character stamp'
-          },
-          ...result,
-          ...{ _id: id },
-          ...add
-        })
-      }
-    }
-  }
-  catch (err) {
-    res.status(400).json({
-      status: {
-        code: 400,
-        message: 'Error patching Initiative document'
-      }
-    })
-  }
-}
-
-const deleteInitiative = async (req, res, next) => {
-  try {
-    const id = req.params.initiativeId
-    const result = await Initiative.deleteOne({ _id: id })
-      .exec()
-    res.status(200).json({
-      status: {
-        code: 200,
-        message: 'Successfully deleted Initiative document'
-      },
-      ...result
-    })
-  }
-  catch (err) {
-    res.status(400).json({
-      status: {
-        code: 400,
-        message: 'Error deleting Initiative document'
-      }
-    })
-  }
-}
-
 const deleteAllInitiatives = async (req, res, next) => {
   try {
     const result = await Initiative.remove().exec()
@@ -483,7 +514,7 @@ module.exports = {
   getEncounterInitiative,
   setEncounterNextTurn,
   patchInitiative,
-  patchCharacter,
+  patchCharacterStamp,
   deleteInitiative,
   deleteAllInitiatives
 }

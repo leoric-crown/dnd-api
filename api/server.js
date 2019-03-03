@@ -9,7 +9,6 @@ const characterRoutes = require('./routes/characters')
 const initiativeRoutes = require('./routes/initiatives')
 const conditionRoutes = require('./routes/conditions')
 const userRoutes = require('./routes/users')
-// const ws = require('express-ws')
 
 module.exports = class ServerApp {
   /**
@@ -62,7 +61,7 @@ module.exports = class ServerApp {
     return server.listen(this.config.port, () => {
       
       this.app.io.on('connection', (socket) => {
-        console.log(this.chalk.bold.magenta('WebSocket connection from Client: ' + socket.id))
+        console.log(this.chalk.bold.blue('WebSocket connection from Client: ' + socket.id))
       })
 
       console.log(this.chalk.bold.green(
