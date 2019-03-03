@@ -6,8 +6,6 @@ const config = require('./config/main')
 const mongoConfig = require('./config/mongo')
 const chalk = require('chalk')
 
-new Server(config, chalk).start();
-
 mongoose.connect(
     config.dbpath,
     { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false },
@@ -16,6 +14,7 @@ mongoose.connect(
 mongoose.connection.once('open', () => {
     fetchConditions()
     console.log(chalk.bold.magenta(`Succesfully Connected to MongoDB at ${config.dbpath}`))
+    new Server(config, chalk).start();
 });
 
 mongoose.connection.on('error', (err) => {
