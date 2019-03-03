@@ -5,6 +5,7 @@ const Character = require('../models/character.model')
 const validator = require('validator')
 const download = require('image-downloader')
 const defaultPic = 'uploads/characterPicDefault.jpg'
+const wsTypes = require('../socket/wsTypes')
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -64,9 +65,9 @@ const createCharacter = async (req, res, next) => {
       }
     }
     
-    req.app.io.emit('CREATE_CHARACTER', {
+    req.app.io.emit(wsTypes.CREATE_CHARACTER, {
       character: responseBody.createdCharacter,
-      appId: req.body.appId
+      appId: req.headers.appid
     })
     res.status(201).json(responseBody)
   }
@@ -196,6 +197,12 @@ const patchCharacter = async (req, res, next) => {
           url: endpoint + id
         }
       }
+
+      req.app.io.emit(wsTypes.UPDATE_CHARACTER, {
+        id,
+        appId: req.headers.appid,
+        payload: req.body
+      })
       res.status(200).json({
         status: {
           code: 200,
@@ -281,6 +288,10 @@ const deleteCharacter = async (req, res, next) => {
   try {
     const id = req.params.characterId
     const result = await Character.deleteOne({ _id: id }).exec()
+    req.app.io.emit(wsTypes.REMOVE_CHARACTER, {
+      id,
+      appId: req.headers.appid
+    })
     res.status(200).json({
       status: {
         code: 200,

@@ -2,6 +2,7 @@ const config = require('../../config/main')
 const endpoint = `http://${config.host}:${config.port}/encounters/`
 const mongoose = require('mongoose')
 const Encounter = require('../models/encounter.model')
+const wsTypes = require('../socket/wsTypes')
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -23,7 +24,7 @@ const createEncounter = async (req, res, next) => {
         url: endpoint + encounter._id
       }
     }
-    res.status(201).json({
+    const responseBody = {
       status: {
         code: 201,
         message: 'Successfully created new Encounter document'
@@ -32,7 +33,13 @@ const createEncounter = async (req, res, next) => {
         ...encounter._doc,
         ...add
       }
+    }
+
+    req.app.io.emit(wsTypes.CREATE_ENCOUNTER, {
+      encounter: responseBody.createdEncounter,
+      appId: req.headers.appid
     })
+    res.status(201).json(responseBody)
   }
   catch (err) {
     console.log(err)
@@ -98,18 +105,26 @@ const setActiveEncounter = async (req, res, next) => {
     activeEncounter.status = 'Active'
     if (existingActive && existingActive._id !== id) {
       await Encounter.findByIdAndUpdate(existingActive._id, { $set: { status: 'Concluded' } })
+      req.app.io.emit(wsTypes.CLEAR_ACTIVE_ENCOUNTER, "Please clear active encounter")
     }
     activeEncounter._doc.request = {
       type: 'GET',
       url: endpoint + activeEncounter._id
     }
-    res.json({
+    const responseBody = {
       status: {
         code: 200,
         message: 'Successfully updated/set Active Encounter'
       },
       activeEncounter
+    }
+
+    req.app.io.emit(wsTypes.SET_ACTIVE_ENCOUNTER, {
+      active: responseBody.activeEncounter,
+      prevActiveId: req.body.prevActiveId,
+      appId: req.headers.appid
     })
+    res.json(responseBody)
 } catch (err) {
   console.log(err)
   res.status(400).json({
@@ -162,6 +177,7 @@ const patchEncounter = async (req, res, next) => {
     const changeActive = (updateOps.status === 'Active')
     if (changeActive) {
       const resetActives = await Encounter.updateMany({ status: 'Active' }, { $set: { status: 'Concluded' } }).exec()
+      req.app.io.emit(wsTypes.CLEAR_ACTIVE_ENCOUNTER, "Please clear active encounter")
     }
     const result = await Encounter.updateOne({ _id: id }, { $set: updateOps }).exec()
     if (result.n === 0) {
@@ -179,6 +195,11 @@ const patchEncounter = async (req, res, next) => {
         }
       }
       if (add) add.activeEncounter = id
+      req.app.io.emit(wsTypes.UPDATE_ENCOUNTER, {
+        id,
+        appId: req.headers.appid,
+        payload: req.body
+      })
       res.status(200).json({
         status: {
           code: 200,
@@ -204,6 +225,10 @@ const deleteEncounter = async (req, res, next) => {
   try {
     const id = req.params.encounterId
     const result = await Encounter.deleteOne({ _id: id }).exec()
+    req.app.io.emit(wsTypes.REMOVE_ENCOUNTER, {
+      id,
+      appId: req.headers.appid
+    })
     res.status(200).json({
       status: {
         code: 200,
