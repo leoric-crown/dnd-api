@@ -27,8 +27,10 @@ router.post('/verifyToken', authenticate, (req, res) => {
   })
 })
 
-router.delete('/:userId', UserController.userDelete)
+router.patch('/:userId', authenticate, UserController.patchUser)
 
-router.delete('/', UserController.userDeleteAll)
+router.delete('/:userId', authenticate, UserController.userDelete)
+
+router.delete('/', authenticate, UserController.userDeleteAll)
 
 module.exports = router

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const tokens = require('../auth/token.utils')
 const config = require('../../config/main')
+const endpoint = `http://${config.host}:${config.port}/users/`
 const User = require('../models/user.model');
 const ExtractJwt = require('passport-jwt').ExtractJwt
 
@@ -21,6 +22,63 @@ const returnAuthError = res => {
       message: 'Authentication failed'
     }
   })
+}
+
+const readOnlyFields = [
+  'email',
+  'password',
+  'facebookProvider'
+]
+
+const patchUser = async (req, res, next) => {
+  try {
+    const id = req.params.userId
+    if (req.user.id !== id) {
+      res.status(403).json({
+        status: {
+          code: 403,
+          message: 'Patch failed: Insufficient privileges'
+        }
+      })
+    }
+    const updateOps = {}
+    for (const ops of req.body) {
+      if (!readOnlyFields.includes(ops.propName))
+        updateOps[ops.propName] = ops.value
+    }
+
+    const result = await User.updateOne({ _id: id }, { $set: updateOps }).exec()
+    if (result.n === 0) {
+      res.status(500).json({
+        status: {
+          code: 500,
+          message: 'Patch failed: User document not found'
+        }
+      })
+    }
+    else {
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Successfully patched User document'
+        },
+        ...result,
+        _id: id,
+        request: {
+          type: 'GET',
+          url: endpoint + id
+        }
+      })
+    }
+  } catch (err) {
+    console.log(err)
+    res.status(400).json({
+      status: {
+        code: 400,
+        message: 'Error patching User document'
+      }
+    })
+  }
 }
 
 const userSignup = async (req, res, next) => {
@@ -113,6 +171,7 @@ const userDeleteAll = async (req, res, next) => {
 module.exports = {
   userSignup,
   userLogin,
+  patchUser,
   userDelete,
   userDeleteAll
 }

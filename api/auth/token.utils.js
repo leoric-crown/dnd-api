@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const config = require('../../config/main')
+const endpoint = `http://${config.host}:${config.port}/users/`
 
 const createToken = user => {
   return jwt.sign({ user }, config.jwtKey, { expiresIn: '24h' })
@@ -16,7 +17,11 @@ const sendToken = async (req, res) => {
     email: req.user.email,
     userId: req.user._id,
     isDM: req.user.isDM,
-    photoURL: req.user.photoURL
+    photoURL: req.user.photoURL,
+    request: {
+      type: 'GET',
+      url: endpoint + id
+    }
   })
 }
 
