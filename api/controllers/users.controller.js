@@ -1,10 +1,9 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
 const tokens = require('../auth/token.utils')
 const config = require('../../config/main')
 const endpoint = `http://${config.host}:${config.port}/users/`
-const User = require('../models/user.model');
-const ExtractJwt = require('passport-jwt').ExtractJwt
+const User = require('../models/user.model')
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -46,9 +45,11 @@ const patchUser = async (req, res, next) => {
       if (!readOnlyFields.includes(ops.propName))
         updateOps[ops.propName] = ops.value
     }
+    console.log('updateOps', updateOps)
 
-    const result = await User.updateOne({ _id: id }, { $set: updateOps }).exec()
-    if (result.n === 0) {
+    // const updated = await User.updateOne({ _id: id }, { $set: updateOps }).exec()
+    const updated = await User.findOneAndUpdate({ _id: id }, { $set: updateOps}, { new: true }).exec()
+    if (updated.n === 0) {
       res.status(500).json({
         status: {
           code: 500,
@@ -57,18 +58,9 @@ const patchUser = async (req, res, next) => {
       })
     }
     else {
-      res.status(200).json({
-        status: {
-          code: 200,
-          message: 'Successfully patched User document'
-        },
-        ...result,
-        _id: id,
-        request: {
-          type: 'GET',
-          url: endpoint + id
-        }
-      })
+      const { __v, facebookProvider, password, ...user } = updated._doc
+      req.user = user
+      tokens.sendToken(req, res)
     }
   } catch (err) {
     console.log(err)

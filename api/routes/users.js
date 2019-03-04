@@ -4,6 +4,7 @@ const tokens = require('../auth/token.utils')
 const UserController = require('../controllers/users.controller')
 const config = require('../../config/main')
 const passport = require('passport')
+const endpoint = `http://${config.host}:${config.port}/users/`
 
 require('../auth/passport')()
 const authenticate = passport.authenticate('jwt', { session: false })
@@ -13,13 +14,16 @@ router.post('/signup', UserController.userSignup)
 
 router.post('/login', UserController.userLogin)
 
-router.post('/auth/facebook', authenticateFb, tokens.sendToken)
+router.post('/auth/facebook', authenticateFb, (req, res) => tokens.sendToken(req, res, true))
 
 router.post('/verifyToken', authenticate, (req, res) => {
-  const { password, _id, _v, ...user } = req.user._doc
-  user.userId = _id
+  const { password,  _v, facebookProvider, ...user } = req.user._doc
   res.status(200).json({
-    user,
+    ...user,
+    request: {
+      type: 'GET',
+      url: endpoint + user._id
+    },
     status: {
       code: 200,
       message: 'JSON Web Token successfully verified'
