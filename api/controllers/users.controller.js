@@ -46,9 +46,7 @@ const patchUser = async (req, res, next) => {
       if (!readOnlyFields.includes(ops.propName))
         updateOps[ops.propName] = ops.value
     }
-    console.log('updateOps', updateOps)
-
-    // const updated = await User.updateOne({ _id: id }, { $set: updateOps }).exec()
+    
     const updated = await User.findOneAndUpdate({ _id: id }, { $set: updateOps}, { new: true }).exec()
     if (updated.n === 0) {
       res.status(500).json({
