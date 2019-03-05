@@ -39,6 +39,7 @@ const patchUser = async (req, res, next) => {
           message: 'Patch failed: Insufficient privileges'
         }
       })
+      return
     }
     const updateOps = {}
     for (const ops of req.body) {

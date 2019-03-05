@@ -9,9 +9,7 @@ const createToken = user => {
 const sendToken = async (req, res, fromFb=false, patch=false) => {
   req.token = await createToken(req.user)
 
-  const { __v, facebookProvider, ...user } = (
-    fromFb ? req.user._doc : req.user
-  )
+  const { __v, facebookProvider, ...user } = fromFb ? req.user._doc : req.user
 
   return res.status(200).json({
     status: {
