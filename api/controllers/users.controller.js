@@ -162,7 +162,7 @@ const forgotPassword = async (req, res, next) => {
     if (user.length < 1) {
       returnAuthError(res)
     } else {
-      const token = tokens.createToken(user)
+      const token = tokens.createResetToken(user._id)
       var data = {
         to: user.email,
         from: config.userMail,
