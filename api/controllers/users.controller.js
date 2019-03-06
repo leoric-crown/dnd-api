@@ -163,7 +163,7 @@ const forgotPassword = async (req, res, next) => {
       returnAuthError(res)
     } else {
       const token = tokens.createResetToken(user._id)
-      var data = {
+      const data = {
         to: user.email,
         from: config.userMail,
         template: 'forgot-password-email',
@@ -193,10 +193,26 @@ const resetPassword = async (req, res, next) => {
       { _id: req.user._id },
       { $set: { password: hash } }
     ).exec()
+
+    if (result.nModified < 1) {
+      returnAuthError(res)
+    }
+
+    const data = {
+      to: req.user.email,
+      from: config.userMail,
+      template: 'reset-password-email',
+      subject: 'DND Turn Tracker: Password Reset Confirmation',
+      context: {
+        name: req.user.firstName
+      }
+    };
+
+    await emailClient.sendMail(data)
     res.status(200).json({
       status: {
         code: 200,
-        message: 'Password successfully changed'
+        message: 'Password has been restored successfully'
       }
     })
   } catch (err) {
