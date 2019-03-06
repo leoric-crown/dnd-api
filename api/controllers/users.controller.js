@@ -1,10 +1,10 @@
-const mongoose = require('mongoose')
-const bcrypt = require('bcrypt')
-const tokens = require('../auth/token.utils')
-const config = require('../../config/main')
+const mongoose = require("mongoose")
+const bcrypt = require("bcrypt")
+const tokens = require("../auth/token.utils")
+const config = require("../../config/main")
 const endpoint = `http://${config.host}:${config.port}/users/`
-const User = require('../models/user.model')
-const emailClient = require('../utils/mailClient')
+const User = require("../models/user.model")
+const emailClient = require("../utils/mailClient")
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -19,12 +19,12 @@ const returnAuthError = res => {
   res.status(401).json({
     status: {
       code: 401,
-      message: 'Authentication failed'
+      message: "Authentication failed"
     }
   })
 }
 
-const readOnlyFields = ['email', 'password', 'facebookProvider']
+const readOnlyFields = ["email", "password", "facebookProvider"]
 
 const patchUser = async (req, res, next) => {
   try {
@@ -33,7 +33,7 @@ const patchUser = async (req, res, next) => {
       res.status(403).json({
         status: {
           code: 403,
-          message: 'Patch failed: Insufficient privileges'
+          message: "Patch failed: Insufficient privileges"
         }
       })
       return
@@ -53,7 +53,7 @@ const patchUser = async (req, res, next) => {
       res.status(500).json({
         status: {
           code: 500,
-          message: 'Patch failed: User document not found'
+          message: "Patch failed: User document not found"
         }
       })
     } else {
@@ -66,7 +66,7 @@ const patchUser = async (req, res, next) => {
     res.status(400).json({
       status: {
         code: 400,
-        message: 'Error patching User document'
+        message: "Error patching User document"
       }
     })
   }
@@ -79,7 +79,7 @@ const userSignup = async (req, res, next) => {
       return res.status(409).json({
         status: {
           code: 409,
-          message: 'E-mail is already registered'
+          message: "E-mail is already registered"
         }
       })
     } else {
@@ -107,7 +107,7 @@ const userSignup = async (req, res, next) => {
 const userLogin = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email })
-      .select('-__v')
+      .select("-__v")
       .exec()
     if (user.length < 1) {
       returnAuthError(res)
@@ -132,7 +132,7 @@ const userDelete = async (req, res, next) => {
     res.status(200).json({
       status: {
         code: 200,
-        message: 'User has been removed'
+        message: "User has been removed"
       }
     })
   } catch (err) {
@@ -146,7 +146,7 @@ const userDeleteAll = async (req, res, next) => {
     res.status(200).json({
       status: {
         code: 200,
-        message: 'All Users have been removed'
+        message: "All Users have been removed"
       }
     })
   } catch (err) {
@@ -157,7 +157,7 @@ const userDeleteAll = async (req, res, next) => {
 const forgotPassword = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email })
-      .select('-__v')
+      .select("-__v")
       .exec()
     if (user.length < 1) {
       returnAuthError(res)
@@ -166,9 +166,8 @@ const forgotPassword = async (req, res, next) => {
       var data = {
         to: user.email,
         from: config.userMail,
-        template: 'forgot-password-email',
-        subject:
-          'DND Turn Tracker: Password help has arrived my adventurer@@@@@@',
+        template: "forgot-password-email",
+        subject: "DND Turn Tracker: Password help has arrived my adventurer!",
         context: {
           url: `http://localhost:3000/resetpassword?token=${token}`,
           name: user.firstName
@@ -178,10 +177,28 @@ const forgotPassword = async (req, res, next) => {
       res.status(200).json({
         status: {
           code: 200,
-          message: 'Please check your email and follow the instructions'
+          message: "Please check your email and follow the instructions"
         }
       })
     }
+  } catch (err) {
+    returnError(err, res)
+  }
+}
+
+const resetPassword = async (req, res, next) => {
+  const hash = await bcrypt.hash(req.body.password, 10)
+  try {
+    const result = await User.updateOne(
+      { _id: req.user._id },
+      { $set: { password: hash } }
+    ).exec()
+    res.status(200).json({
+      status: {
+        code: 200,
+        message: 'Password successfully changed'
+      }
+    })
   } catch (err) {
     returnError(err, res)
   }
@@ -193,5 +210,6 @@ module.exports = {
   patchUser,
   userDelete,
   userDeleteAll,
-  forgotPassword
+  forgotPassword,
+  resetPassword
 }
