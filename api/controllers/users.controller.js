@@ -4,6 +4,8 @@ const tokens = require('../auth/token.utils')
 const config = require('../../config/main')
 const endpoint = `http://${config.host}:${config.port}/users/`
 const User = require('../models/user.model')
+const async = require('async')
+const emailClient = require ('../utils/mailClient')
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -23,11 +25,7 @@ const returnAuthError = res => {
   })
 }
 
-const readOnlyFields = [
-  'email',
-  'password',
-  'facebookProvider'
-]
+const readOnlyFields = ['email', 'password', 'facebookProvider']
 
 const patchUser = async (req, res, next) => {
   try {
@@ -46,8 +44,12 @@ const patchUser = async (req, res, next) => {
       if (!readOnlyFields.includes(ops.propName))
         updateOps[ops.propName] = ops.value
     }
-    
-    const updated = await User.findOneAndUpdate({ _id: id }, { $set: updateOps}, { new: true }).exec()
+
+    const updated = await User.findOneAndUpdate(
+      { _id: id },
+      { $set: updateOps },
+      { new: true }
+    ).exec()
     if (updated.n === 0) {
       res.status(500).json({
         status: {
@@ -55,8 +57,7 @@ const patchUser = async (req, res, next) => {
           message: 'Patch failed: User document not found'
         }
       })
-    }
-    else {
+    } else {
       const { __v, facebookProvider, password, ...user } = updated._doc
       req.user = user
       tokens.sendToken(req, res)
@@ -90,7 +91,7 @@ const userSignup = async (req, res, next) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         isDM: !req.body.isDM ? false : req.body.isDM,
-        password: hash,
+        password: hash
       })
 
       const result = await user.save()
@@ -99,8 +100,7 @@ const userSignup = async (req, res, next) => {
       req.user = noPassword
       tokens.sendToken(req, res)
     }
-  }
-  catch (err) {
+  } catch (err) {
     returnError(err, res)
   }
 }
@@ -118,13 +118,11 @@ const userLogin = async (req, res, next) => {
         const { password, ...noPassword } = user._doc
         req.user = noPassword
         tokens.sendToken(req, res)
-      }
-      else {
+      } else {
         returnAuthError(res)
       }
     }
-  }
-  catch (err) {
+  } catch (err) {
     returnAuthError(res)
   }
 }
@@ -138,8 +136,7 @@ const userDelete = async (req, res, next) => {
         message: 'User has been removed'
       }
     })
-  }
-  catch (err) {
+  } catch (err) {
     returnError(err, res)
   }
 }
@@ -153,10 +150,62 @@ const userDeleteAll = async (req, res, next) => {
         message: 'All Users have been removed'
       }
     })
-  }
-  catch (err) {
+  } catch (err) {
     returnError(err, res)
   }
+}
+
+const forgotPassword = async (req, res, next) => {
+  async.waterfall(
+    [
+      function(done) {
+        User.findOne({
+          email: req.body.email
+        }).exec(function(err, user) {
+          if (user) {
+            done(err, user)
+          } else {
+            done('User not found.')
+          }
+        })
+      },
+      function(user, done) {
+        User.findByIdAndUpdate(
+          { _id: user._id }
+        ).exec(function(err, new_user) {
+          done(err, new_user)
+        })
+      },
+      function(user, done) {
+        const token = tokens.createToken(user)
+        var data = {
+          to: user.email,
+          from: config.userMail,
+          template: 'forgot-password-email',
+          subject: 'DND Turn Tracker: Password help has arrived my adventurer!',
+          context: {
+            url: `http://localhost:3000/resetpassword?token=${token}`,
+            name: user.firstName
+          }
+        }
+        emailClient.sendMail(data, function(err) {
+          if (!err) {
+            res.status(200).json({
+              status: {
+                code: 200,
+                message: 'Please check your email and follow the instructions'
+              }
+            })
+          } else {
+            return done(err)
+          }
+        })
+      }
+    ],
+    function(err) {
+      return res.status(422).json({ message: err })
+    }
+  )
 }
 
 module.exports = {
@@ -164,5 +213,6 @@ module.exports = {
   userLogin,
   patchUser,
   userDelete,
-  userDeleteAll
+  userDeleteAll,
+  forgotPassword
 }

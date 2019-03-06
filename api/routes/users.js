@@ -37,4 +37,6 @@ router.delete('/:userId', authenticate, UserController.userDelete)
 
 router.delete('/', authenticate, UserController.userDeleteAll)
 
+router.post('/forgotpassword', UserController.forgotPassword)
+
 module.exports = router

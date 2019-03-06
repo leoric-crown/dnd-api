@@ -26,5 +26,6 @@ const sendToken = async (req, res, fromFb=false, patch=false) => {
 }
 
 module.exports = {
-  sendToken
+  sendToken,
+  createToken
 }
