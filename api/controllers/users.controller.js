@@ -4,8 +4,7 @@ const tokens = require('../auth/token.utils')
 const config = require('../../config/main')
 const endpoint = `http://${config.host}:${config.port}/users/`
 const User = require('../models/user.model')
-const async = require('async')
-const emailClient = require ('../utils/mailClient')
+const emailClient = require('../utils/mailClient')
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -156,56 +155,36 @@ const userDeleteAll = async (req, res, next) => {
 }
 
 const forgotPassword = async (req, res, next) => {
-  async.waterfall(
-    [
-      function(done) {
-        User.findOne({
-          email: req.body.email
-        }).exec(function(err, user) {
-          if (user) {
-            done(err, user)
-          } else {
-            done('User not found.')
-          }
-        })
-      },
-      function(user, done) {
-        User.findByIdAndUpdate(
-          { _id: user._id }
-        ).exec(function(err, new_user) {
-          done(err, new_user)
-        })
-      },
-      function(user, done) {
-        const token = tokens.createToken(user)
-        var data = {
-          to: user.email,
-          from: config.userMail,
-          template: 'forgot-password-email',
-          subject: 'DND Turn Tracker: Password help has arrived my adventurer!',
-          context: {
-            url: `http://localhost:3000/resetpassword?token=${token}`,
-            name: user.firstName
-          }
+  try {
+    const user = await User.findOne({ email: req.body.email })
+      .select('-__v')
+      .exec()
+    if (user.length < 1) {
+      returnAuthError(res)
+    } else {
+      const token = tokens.createToken(user)
+      var data = {
+        to: user.email,
+        from: config.userMail,
+        template: 'forgot-password-email',
+        subject:
+          'DND Turn Tracker: Password help has arrived my adventurer@@@@@@',
+        context: {
+          url: `http://localhost:3000/resetpassword?token=${token}`,
+          name: user.firstName
         }
-        emailClient.sendMail(data, function(err) {
-          if (!err) {
-            res.status(200).json({
-              status: {
-                code: 200,
-                message: 'Please check your email and follow the instructions'
-              }
-            })
-          } else {
-            return done(err)
-          }
-        })
       }
-    ],
-    function(err) {
-      return res.status(422).json({ message: err })
+      await emailClient.sendMail(data)
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Please check your email and follow the instructions'
+        }
+      })
     }
-  )
+  } catch (err) {
+    returnError(err, res)
+  }
 }
 
 module.exports = {
