@@ -187,8 +187,8 @@ const forgotPassword = async (req, res, next) => {
 }
 
 const resetPassword = async (req, res, next) => {
-  const hash = await bcrypt.hash(req.body.password, 10)
   try {
+    const hash = await bcrypt.hash(req.body.password, 10)
     const result = await User.updateOne(
       { _id: req.user._id },
       { $set: { password: hash } }
