@@ -148,7 +148,12 @@ const setActiveEncounter = async (req, res, next) => {
 const deleteEncounter = async (req, res, next) => {
   try {
     const id = req.params.encounterId
-    const result = await Encounter.deleteOne({ _id: id }).exec()
+    const result = await Encounter.findOneAndDelete({ _id: id }).exec()
+    if (result.status === 'Active') {
+      req.app.io.emit(wsTypes.CLEAR_ACTIVE_ENCOUNTER, {
+        appId: req.headers.appid
+      })
+    }
     req.app.io.emit(wsTypes.REMOVE_ENCOUNTER, {
       id,
       appId: req.headers.appid
