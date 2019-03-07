@@ -169,7 +169,7 @@ const forgotPassword = async (req, res, next) => {
         template: 'forgot-password-email',
         subject: 'DND Turn Tracker: Password help has arrived my adventurer!',
         context: {
-          url: `http://localhost:3000/resetpassword?token=${token}`,
+          url: `${req.body.callback}/resetpassword?token=${token}`,
           name: user.firstName
         }
       }
