@@ -126,13 +126,22 @@ const userLogin = async (req, res, next) => {
     if (user.length < 1) {
       returnAuthError(res)
     } else {
-      const result = await bcrypt.compare(req.body.password, user.password)
-      if (result) {
-        const { password, ...noPassword } = user._doc
-        req.user = noPassword
-        tokens.sendToken(req, res)
+      if(user.verified) {
+        const result = await bcrypt.compare(req.body.password, user.password)
+        if (result) {
+          const { password, ...noPassword } = user._doc
+          req.user = noPassword
+          tokens.sendToken(req, res)
+        } else {
+          returnAuthError(res)
+        }
       } else {
-        returnAuthError(res)
+        res.status(401).json({
+          status: {
+            code: 401,
+            message: 'Please verify your e-mail before logging in'
+          }
+        })
       }
     }
   } catch (err) {
@@ -173,9 +182,16 @@ const forgotPassword = async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email })
       .select('-__v')
       .exec()
-    if (user.length < 1) {
-      returnAuthError(res)
+    if (!user) {
+      res.status(401).json({
+        status: {
+          code: 401,
+          message: 'Email is not registered'
+        }
+      })
     } else {
+      user.forgotPassword = true
+      user.save()
       const token = tokens.createVerifyToken(user._id)
       const data = {
         to: user.email,
@@ -202,33 +218,43 @@ const forgotPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   try {
-    const hash = await bcrypt.hash(req.body.password, 10)
-    const result = await User.updateOne(
-      { _id: req.user._id },
-      { $set: { password: hash } }
-    ).exec()
-
-    if (result.nModified < 1) {
-      returnAuthError(res)
+    if(req.user.forgotPassword) {
+      const hash = await bcrypt.hash(req.body.password, 10)
+      const result = await User.updateOne(
+        { _id: req.user._id },
+        { $set: { password: hash, forgotPassword: false } }
+      ).exec()
+  
+      if (result.nModified < 1) {
+        returnAuthError(res)
+      }
+  
+      const data = {
+        to: req.user.email,
+        from: config.userMail,
+        template: 'reset-password-email',
+        subject: 'DND Turn Tracker: Password Reset Confirmation',
+        context: {
+          name: req.user.firstName
+        }
+      };
+  
+      await emailClient.sendMail(data)
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Password has been restored successfully'
+        }
+      })
+    } else {
+      res.status(400).json({
+        status: {
+          code: 400,
+          message: 'Token has already been used. Please request password reset again'
+        }
+      })
     }
-
-    const data = {
-      to: req.user.email,
-      from: config.userMail,
-      template: 'reset-password-email',
-      subject: 'DND Turn Tracker: Password Reset Confirmation',
-      context: {
-        name: req.user.firstName
-      }
-    };
-
-    await emailClient.sendMail(data)
-    res.status(200).json({
-      status: {
-        code: 200,
-        message: 'Password has been restored successfully'
-      }
-    })
+    
   } catch (err) {
     returnError(err, res)
   }
