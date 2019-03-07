@@ -20,6 +20,8 @@ router.patch('/:initiativeId', InitiativesController.patchInitiative)
 
 router.patch('/:initiativeId/character', InitiativesController.patchCharacterStamp)
 
+router.delete('/bulk', InitiativesController.bulkDeleteInitiatives)
+
 router.delete('/:initiativeId', InitiativesController.deleteInitiative)
 
 router.delete('/', InitiativesController.deleteAllInitiatives)
