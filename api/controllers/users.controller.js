@@ -90,10 +90,24 @@ const userSignup = async (req, res, next) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         isDM: !req.body.isDM ? false : req.body.isDM,
-        password: hash
+        password: hash,
+        verified: false
       })
 
       const result = await user.save()
+
+      const token = tokens.createVerifyToken(user._id)
+      const data = {
+        to: user.email,
+        from: config.userMail,
+        template: 'verify-email',
+        subject: 'DND Turn Tracker: Registration completed',
+        context: {
+          url: `${req.body.callback}/verifyEmail?token=${token}`,
+          name: user.firstName
+        }
+      }
+      await emailClient.sendMail(data)
 
       const { password, ...noPassword } = user._doc
       req.user = noPassword
@@ -162,14 +176,14 @@ const forgotPassword = async (req, res, next) => {
     if (user.length < 1) {
       returnAuthError(res)
     } else {
-      const token = tokens.createResetToken(user._id)
+      const token = tokens.createVerifyToken(user._id)
       const data = {
         to: user.email,
         from: config.userMail,
         template: 'forgot-password-email',
         subject: 'DND Turn Tracker: Password help has arrived my adventurer!',
         context: {
-          url: `${req.body.callback}/resetpassword?token=${token}`,
+          url: `${req.body.callback}/resetPassword?token=${token}`,
           name: user.firstName
         }
       }
@@ -220,6 +234,36 @@ const resetPassword = async (req, res, next) => {
   }
 }
 
+const verifyEmail = async (req, res, next) => {
+  try {
+    console.log(req.user)
+    const result = await User.updateOne(
+      { _id: req.user._id },
+      { $set: { verified: true } }
+    )
+
+    if (result.nModified < 1) {
+      res.status(401).json({
+        status: {
+          code: 401,
+          message: 'E-mail verification failed: Please try again'
+        }
+      })
+    }
+    else {
+      res.status(200).json({
+        status: {
+          code: 200,
+          message : 'E-mail verification successful! You may now log in'
+        }
+      })
+    }
+
+  } catch (err) { 
+    returnError(err, res)
+  }
+}
+
 module.exports = {
   userSignup,
   userLogin,
@@ -227,5 +271,6 @@ module.exports = {
   userDelete,
   userDeleteAll,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  verifyEmail
 }
