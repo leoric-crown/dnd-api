@@ -19,7 +19,9 @@ const userSchema = mongoose.Schema({
   facebookProvider: {
     id: { type: String },
     select: false,
-  }
+  },
+  verified: { type: Boolean, default: false },
+  forgotPassword: {type: Boolean, default: false}
 })
 
 module.exports = mongoose.model('User', userSchema)

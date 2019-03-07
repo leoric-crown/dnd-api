@@ -6,7 +6,7 @@ const createToken = user => {
   return jwt.sign({ user }, config.jwtKey, { expiresIn: '24h' })
 }
 
-const createResetToken = id => {
+const createVerifyToken = id => {
   return jwt.sign({ user: { _id: id} }, config.jwtKey, { expiresIn: '24h' })
 }
 
@@ -32,5 +32,5 @@ const sendToken = async (req, res, fromFb=false, patch=false) => {
 module.exports = {
   sendToken,
   createToken,
-  createResetToken
+  createVerifyToken
 }

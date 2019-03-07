@@ -90,10 +90,24 @@ const userSignup = async (req, res, next) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         isDM: !req.body.isDM ? false : req.body.isDM,
-        password: hash
+        password: hash,
+        verified: false
       })
 
       const result = await user.save()
+
+      const token = tokens.createVerifyToken(user._id)
+      const data = {
+        to: user.email,
+        from: config.userMail,
+        template: 'verify-email',
+        subject: 'DND Turn Tracker: Registration completed',
+        context: {
+          url: `${req.body.callback}/verifyEmail?token=${token}`,
+          name: user.firstName
+        }
+      }
+      await emailClient.sendMail(data)
 
       const { password, ...noPassword } = user._doc
       req.user = noPassword
@@ -112,13 +126,22 @@ const userLogin = async (req, res, next) => {
     if (user.length < 1) {
       returnAuthError(res)
     } else {
-      const result = await bcrypt.compare(req.body.password, user.password)
-      if (result) {
-        const { password, ...noPassword } = user._doc
-        req.user = noPassword
-        tokens.sendToken(req, res)
+      if(user.verified) {
+        const result = await bcrypt.compare(req.body.password, user.password)
+        if (result) {
+          const { password, ...noPassword } = user._doc
+          req.user = noPassword
+          tokens.sendToken(req, res)
+        } else {
+          returnAuthError(res)
+        }
       } else {
-        returnAuthError(res)
+        res.status(401).json({
+          status: {
+            code: 401,
+            message: 'Please verify your e-mail before logging in'
+          }
+        })
       }
     }
   } catch (err) {
@@ -159,17 +182,24 @@ const forgotPassword = async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email })
       .select('-__v')
       .exec()
-    if (user.length < 1) {
-      returnAuthError(res)
+    if (!user) {
+      res.status(401).json({
+        status: {
+          code: 401,
+          message: 'Email is not registered'
+        }
+      })
     } else {
-      const token = tokens.createResetToken(user._id)
+      user.forgotPassword = true
+      user.save()
+      const token = tokens.createVerifyToken(user._id)
       const data = {
         to: user.email,
         from: config.userMail,
         template: 'forgot-password-email',
         subject: 'DND Turn Tracker: Password help has arrived my adventurer!',
         context: {
-          url: `${req.body.callback}/resetpassword?token=${token}`,
+          url: `${req.body.callback}/resetPassword?token=${token}`,
           name: user.firstName
         }
       }
@@ -188,34 +218,74 @@ const forgotPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   try {
-    const hash = await bcrypt.hash(req.body.password, 10)
+    if(req.user.forgotPassword) {
+      const hash = await bcrypt.hash(req.body.password, 10)
+      const result = await User.updateOne(
+        { _id: req.user._id },
+        { $set: { password: hash, forgotPassword: false } }
+      ).exec()
+  
+      if (result.nModified < 1) {
+        returnAuthError(res)
+      }
+  
+      const data = {
+        to: req.user.email,
+        from: config.userMail,
+        template: 'reset-password-email',
+        subject: 'DND Turn Tracker: Password Reset Confirmation',
+        context: {
+          name: req.user.firstName
+        }
+      };
+  
+      await emailClient.sendMail(data)
+      res.status(200).json({
+        status: {
+          code: 200,
+          message: 'Password has been restored successfully'
+        }
+      })
+    } else {
+      res.status(400).json({
+        status: {
+          code: 400,
+          message: 'Token has already been used. Please request password reset again'
+        }
+      })
+    }
+    
+  } catch (err) {
+    returnError(err, res)
+  }
+}
+
+const verifyEmail = async (req, res, next) => {
+  try {
+    console.log(req.user)
     const result = await User.updateOne(
       { _id: req.user._id },
-      { $set: { password: hash } }
-    ).exec()
+      { $set: { verified: true } }
+    )
 
     if (result.nModified < 1) {
-      returnAuthError(res)
+      res.status(401).json({
+        status: {
+          code: 401,
+          message: 'E-mail verification failed: Please try again'
+        }
+      })
+    }
+    else {
+      res.status(200).json({
+        status: {
+          code: 200,
+          message : 'E-mail verification successful! You may now log in'
+        }
+      })
     }
 
-    const data = {
-      to: req.user.email,
-      from: config.userMail,
-      template: 'reset-password-email',
-      subject: 'DND Turn Tracker: Password Reset Confirmation',
-      context: {
-        name: req.user.firstName
-      }
-    };
-
-    await emailClient.sendMail(data)
-    res.status(200).json({
-      status: {
-        code: 200,
-        message: 'Password has been restored successfully'
-      }
-    })
-  } catch (err) {
+  } catch (err) { 
     returnError(err, res)
   }
 }
@@ -227,5 +297,6 @@ module.exports = {
   userDelete,
   userDeleteAll,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  verifyEmail
 }
