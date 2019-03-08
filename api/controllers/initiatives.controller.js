@@ -37,14 +37,18 @@ const bulkDeleteInitiatives = async (req, res, next) => {
                .select('-__v -encounter')
                .sort({ initiative: 'desc' })
                .exec()
-            prevActiveIndex = encounterInitiatives.map(i => i._id.toString()).indexOf(prevActive._id.toString())
-            const reorderEncounter = []
-            for (let k = 0; k < encounterInitiatives.length; k++) {
-               reorderEncounter.push(encounterInitiatives[(prevActiveIndex + k) % encounterInitiatives.length])
+            if (ids.length === encounterInitiatives.length) {
+               newActiveId = -1
+            } else {
+               prevActiveIndex = encounterInitiatives.map(i => i._id.toString()).indexOf(prevActive._id.toString())
+               const reorderEncounter = []
+               for (let k = 0; k < encounterInitiatives.length; k++) {
+                  reorderEncounter.push(encounterInitiatives[(prevActiveIndex + k) % encounterInitiatives.length])
+               }
+               newActiveId = reorderEncounter.map(i => i._id).find(id => {
+                  return !ids.includes(id.toString())
+               })
             }
-            newActiveId = reorderEncounter.map(i => i._id).find(id => {
-               return !ids.includes(id.toString())
-            })
          }
          const result = await Initiative.deleteMany({
             _id: {
@@ -53,11 +57,15 @@ const bulkDeleteInitiatives = async (req, res, next) => {
          })
          if (result.ok && result.n > 0) {
             if (prevActive) {
-               const newActive = await Initiative.findByIdAndUpdate(newActiveId, { $set: { active: true } })
-               req.app.io.emit(wsTypes.SET_NEXT_TURN, {
-                  prevActive: null,
-                  newActive: newActive
-               })
+               if (newActiveId === -1) {
+                  req.app.io.emit(wsTypes.CLEAR_ACTIVE_ENCOUNTER, "Please clear active encounter")
+               } else {
+                  const newActive = await Initiative.findByIdAndUpdate(newActiveId, { $set: { active: true } })
+                  req.app.io.emit(wsTypes.SET_NEXT_TURN, {
+                     prevActive: null,
+                     newActive: newActive
+                  })
+               }
             }
             req.app.io.emit(wsTypes.BULK_REMOVE_INITIATIVES, {
                list: ids,
