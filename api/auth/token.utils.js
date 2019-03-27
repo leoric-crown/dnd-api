@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 const config = require('../../config/main')
-const endpoint = `${config.host}/users/`
+const endpoint = `${config.host}users/`
 
 const createToken = user => {
   return jwt.sign({ user }, config.jwtKey, { expiresIn: '24h' })

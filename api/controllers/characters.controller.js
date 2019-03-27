@@ -1,5 +1,5 @@
 const config = require('../../config/main')
-const endpoint = `${config.host}/characters/`
+const endpoint = `${config.host}characters/`
 const mongoose = require('mongoose')
 const Character = require('../models/character.model')
 const validator = require('validator')

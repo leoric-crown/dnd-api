@@ -1,5 +1,5 @@
 const config = require('../../config/main')
-const endpoint = `${config.host}/encounters/`
+const endpoint = `${config.host}encounters/`
 const mongoose = require('mongoose')
 const Encounter = require('../models/encounter.model')
 const wsTypes = require('../socket/wsTypes')

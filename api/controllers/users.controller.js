@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const tokens = require('../auth/token.utils')
 const config = require('../../config/main')
-const endpoint = `${config.host}/users/`
+const endpoint = `${config.host}users/`
 const User = require('../models/user.model')
 const emailClient = require('../utils/mailClient')
 
