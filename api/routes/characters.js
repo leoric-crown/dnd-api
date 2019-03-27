@@ -3,6 +3,7 @@ const router = express.Router()
 const multer = require('multer')
 const CharactersController = require('../controllers/characters.controller')
 const passport = require('passport')
+
 const authenticate = passport.authenticate('jwt', { session: false })
 
 const storage = multer.diskStorage({
