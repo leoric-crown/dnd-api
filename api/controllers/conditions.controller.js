@@ -1,5 +1,5 @@
 const config = require('../../config/main')
-const endpoint = `http://${config.host}:${config.port}/conditions/`
+const endpoint = `${config.host}/conditions/`
 const mongoose = require('mongoose')
 const Condition = require('../models/condition.model')
 const MongoSetting = require('../models/mongoSetting.model')

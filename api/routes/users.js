@@ -4,7 +4,7 @@ const tokens = require('../auth/token.utils')
 const UserController = require('../controllers/users.controller')
 const config = require('../../config/main')
 const passport = require('passport')
-const endpoint = `http://${config.host}:${config.port}/users/`
+const endpoint = `${config.host}/users/`
 
 require('../auth/passport')()
 const authenticate = passport.authenticate('jwt', { session: false })
