@@ -41,3 +41,5 @@ mongoose.connection.on('error', (err) => {
     console.log(chalk.bold.red(`Error connecting to MongoDB at ${config.dbpath}`))
     process.exit()
 });
+
+console.log(process.env)

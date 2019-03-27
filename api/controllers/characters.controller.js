@@ -294,7 +294,7 @@ const updateCharacterImage = async (req, res, next) => {
           message: 'Successfully updated Character Image'
         },
         character,
-        ...{ _id: id, picUrl: `http://${config.host}:${config.port}/${character.picUrl}` },
+        ...{ _id: id, picUrl: character.picUrl },
         ...add
       })
     }
