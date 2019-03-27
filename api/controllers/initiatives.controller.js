@@ -179,6 +179,7 @@ const createInitiative = async (req, res, next) => {
       res.status(201).json(responseBody)
    }
    catch (err) {
+      console.log(err)
       res.status(400).json({
          status: {
             code: 400,
