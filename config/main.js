@@ -9,5 +9,7 @@ module.exports = {
   },
   mailService: process.env.EMAIL_SERVICE,
   userMail: process.env.EMAIL_USER,
-  userPass: process.env.EMAIL_PASS
+  userPass: process.env.EMAIL_PASS,
+  awsSecret: process.env.AWS_SECRET,
+  awsKey: process.env.AWS_KEY
 }

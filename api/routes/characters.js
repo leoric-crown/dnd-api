@@ -3,6 +3,7 @@ const router = express.Router()
 const multer = require('multer')
 const CharactersController = require('../controllers/characters.controller')
 const passport = require('passport')
+const aws = require('../aws/aws')
 
 const authenticate = passport.authenticate('jwt', { session: false })
 
@@ -39,8 +40,8 @@ router.get('/user', CharactersController.getUserCharacters)
 
 router.get('/:characterId', CharactersController.getCharacter)
 
-router.post('/', upload.single('characterPic'), CharactersController.createCharacter)
-
+router.post('/', aws.upload.single('characterPic'), CharactersController.createCharacter)
+// upload.single('characterPic'), 
 router.post('/:characterId/pic', upload.single('characterPic'), CharactersController.updateCharacterImage)
 
 router.patch('/:characterId', CharactersController.patchCharacter)

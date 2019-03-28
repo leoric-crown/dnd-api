@@ -4,8 +4,16 @@ const mongoose = require('mongoose')
 const Character = require('../models/character.model')
 const validator = require('validator')
 const download = require('image-downloader')
-const defaultPic = 'uploads/characterPicDefault.jpg'
+const defaultPic = 'https://s3.us-east-2.amazonaws.com/dnd-turntracker-aws/characterPicDefault.jpg'
 const wsTypes = require('../socket/wsTypes')
+const aws = require('aws-sdk')
+
+aws.config.update({
+  secretAccessKey: config.awsSecret,
+  accessKeyId: config.awsKey,
+  region: 'us-east-1'
+})
+const s3 = new aws.S3()
 
 const returnError = (err, res) => {
   res.status(500).json({
@@ -13,23 +21,38 @@ const returnError = (err, res) => {
   })
 }
 
-const fetchImage = async (url) => {
+const fetchAndUpload = async (url) => {
   const options = {
     url,
     dest: './uploads/' + new Date().getTime() + url.substring(url.lastIndexOf('/') + 1)
   }
   try {
     const result = await download.image(options)
-    const path = result.filename.substring(result.filename.indexOf('/') + 1)
-    return path
+    console.log('result', result)
+    //TODO: upload to aws without saving in filesystem
+    const uploadResult = await s3.upload({
+      Bucket: 'dnd-turntracker-aws',
+      Key: result.filename.substring(result.filename.lastIndexOf('/')+1),
+      Body: result.image
+    }).promise()
+    uploadResult.location = uploadResult.Location
+    return uploadResult
   }
   catch (err) {
-    return defaultPic
+    return {location: defaultPic}
   }
 }
 
 const createCharacter = async (req, res, next) => {
   try {
+    console.log('req.file', req.file)
+    if (!req.file &&
+      req.body.characterPic &&
+      validator.isURL(req.body.characterPic)) {
+      req.file = await fetchAndUpload(req.body.characterPic)
+      console.log('uploadResult', req.file)
+    }
+
     const character = new Character({
       _id: new mongoose.Types.ObjectId(),
       name: req.body.name,
@@ -40,11 +63,7 @@ const createCharacter = async (req, res, next) => {
       conditions: (req.body.conditions == null ? [] : req.body.conditions),
       player: req.body.player,
       user: req.body.player ? req.body.user : null,
-      picUrl: req.file ?
-        req.file.path.replace('\\', '/') :
-        req.body.characterPic && validator.isURL(req.body.characterPic) ?
-          await fetchImage(req.body.characterPic) :
-          defaultPic
+      picUrl: req.file ? req.file.location : defaultPic
     })
 
     const result = await character.save()
@@ -64,7 +83,7 @@ const createCharacter = async (req, res, next) => {
         ...add
       }
     }
-    
+
     req.app.io.emit(wsTypes.CREATE_CHARACTER, {
       character: responseBody.createdCharacter,
       appId: req.headers.appid
@@ -159,10 +178,10 @@ const deleteCharacter = async (req, res, next) => {
 }
 
 const getAllCharacters = async (req, res, next) => {
-    const docs = await Character.find()
-      .select('-__v')
-      .exec()
-    return charactersResponse(res, docs)
+  const docs = await Character.find()
+    .select('-__v')
+    .exec()
+  return charactersResponse(res, docs)
 }
 
 const getUserCharacters = async (req, res, next) => {
