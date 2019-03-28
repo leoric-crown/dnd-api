@@ -11,8 +11,7 @@ const aws = require('aws-sdk')
 aws.config.update({
   secretAccessKey: config.awsSecret,
   accessKeyId: config.awsKey,
-  region: 'us-east-1',
-  ACL: 'public-read'
+  region: 'us-east-1'
 })
 const s3 = new aws.S3()
 
@@ -34,7 +33,8 @@ const fetchAndUpload = async (url) => {
     const uploadResult = await s3.upload({
       Bucket: 'dnd-turntracker-aws',
       Key: result.filename.substring(result.filename.lastIndexOf('/')+1),
-      Body: result.image
+      Body: result.image,
+      ACL: 'public-read'
     }).promise()
     uploadResult.location = uploadResult.Location
     return uploadResult
