@@ -11,7 +11,8 @@ const aws = require('aws-sdk')
 aws.config.update({
   secretAccessKey: config.awsSecret,
   accessKeyId: config.awsKey,
-  region: 'us-east-1'
+  region: 'us-east-1',
+  ACL: 'public-read'
 })
 const s3 = new aws.S3()
 
